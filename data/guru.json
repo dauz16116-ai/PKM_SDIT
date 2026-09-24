@@ -1,0 +1,19 @@
+{
+    "admin": {
+        "password": "admin",
+        "role": "admin",
+        "nama": "Administrator SDIT"
+    },
+    "guru1": {
+        "password": "123",
+        "role": "guru",
+        "nama": "Ferda Ayi",
+        "kelas": "4A"
+    },
+    "guru2": {
+        "password": "123",
+        "role": "guru",
+        "nama": "Ahmad Rasyid",
+        "kelas": "4B"
+    }
+}

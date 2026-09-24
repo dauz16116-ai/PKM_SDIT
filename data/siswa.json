@@ -1,0 +1,51 @@
+[
+    {
+        "id": "S001",
+        "nama": "Budi Santoso",
+        "kelas": "4A",
+        "poin": 110,
+        "catatan": [
+            {
+                "tanggal": "2026-09-24 09:53",
+                "kategori": "prestasi",
+                "deskripsi": "Melaksanakan Sholat Tepat Waktu",
+                "poin": 10,
+                "pencatat": "Ferda Ayi"
+            },
+            {
+                "tanggal": "2026-09-24 09:53",
+                "kategori": "prestasi",
+                "deskripsi": "Pakaian Rapi & Bersih",
+                "poin": 5,
+                "pencatat": "Ferda Ayi"
+            },
+            {
+                "tanggal": "2026-09-24 09:53",
+                "kategori": "pelanggaran",
+                "deskripsi": "Atribut Seragam Tidak Lengkap",
+                "poin": 5,
+                "pencatat": "Ferda Ayi"
+            }
+        ],
+        "tahsin": [
+            {
+                "tanggal": "2026-09-24",
+                "halaman_akhir": "Jilid 3 Hal. 15",
+                "catatan": "Lancar, makhorijul huruf bagus",
+                "ceklist_guru": true,
+                "ceklist_ortu": true,
+                "penilai": "Ferda Ayi"
+            }
+        ],
+        "tahfidz": [
+            {
+                "tanggal": "2026-09-24",
+                "hafalan_terakhir": "Surah An-Naba Ayat 1-20",
+                "catatan": "Mutqin dan lancar",
+                "ceklist_guru": true,
+                "ceklist_ortu": false,
+                "penilai": "Ferda Ayi"
+            }
+        ]
+    }
+]

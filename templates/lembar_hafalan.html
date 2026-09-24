@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Laporan Tahsin & Tahfidz - {{ siswa.nama }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        @media print { .no-print { display: none; } }
+        body { font-family: 'Georgia', serif; background: #fff; }
+        .cetak-box { border: 2px solid #198754; padding: 30px; margin: 20px auto; max-width: 850px; }
+    </style>
+</head>
+<body>
+    <div class="container text-center mt-3 no-print">
+        <button onclick="window.print()" class="btn btn-success me-2"><i class="bi bi-printer"></i> Cetak Laporan</button>
+        <button onclick="window.close()" class="btn btn-secondary">Tutup</button>
+    </div>
+
+    <div class="cetak-box">
+        <div class="text-center border-bottom border-2 border-success pb-3 mb-3">
+            <h4 class="fw-bold text-success mb-1">LAPORAN TAHSIN & TAHFIDZ PERMINGGU</h4>
+            <h6 class="fw-bold mb-0">SD ISLAM TERPADU (SDIT)</h6>
+        </div>
+
+        <table class="table table-borderless mb-3">
+            <tr>
+                <td width="15%"><strong>Nama Siswa</strong></td>
+                <td width="2%">:</td>
+                <td width="33%">{{ siswa.nama }}</td>
+                <td width="15%"><strong>Kelas</strong></td>
+                <td width="2%">:</td>
+                <td width="33%">{{ siswa.kelas }}</td>
+            </tr>
+        </table>
+
+        <!-- Tabel Tahsin -->
+        <h6 class="fw-bold text-info">1. Capaian Tahsin Perminggu:</h6>
+        <table class="table table-bordered align-middle text-center mb-4">
+            <thead class="table-info">
+                <tr>
+                    <th>Tanggal</th>
+                    <th>Halaman Akhir Dibaca</th>
+                    <th>Catatan Guru</th>
+                    <th>Ceklist Guru</th>
+                    <th>Ceklist Ortu</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in siswa.tahsin %}
+                <tr>
+                    <td>{{ t.tanggal }}</td>
+                    <td>{{ t.halaman_akhir }}</td>
+                    <td>{{ t.catatan }}</td>
+                    <td>{% if t.ceklist_guru %}✔️{% else %}❌{% endif %}</td>
+                    <td>{% if t.ceklist_ortu %}✔️{% else %}❌{% endif %}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="text-muted">Belum ada nilai Tahsin.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Tabel Tahfidz -->
+        <h6 class="fw-bold text-success">2. Capaian Tahfidz Perminggu:</h6>
+        <table class="table table-bordered align-middle text-center mb-4">
+            <thead class="table-success">
+                <tr>
+                    <th>Tanggal</th>
+                    <th>Hafalan Terakhir (Ayat/Surah)</th>
+                    <th>Catatan Guru</th>
+                    <th>Ceklist Guru</th>
+                    <th>Ceklist Ortu</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for f in siswa.tahfidz %}
+                <tr>
+                    <td>{{ f.tanggal }}</td>
+                    <td>{{ f.hafalan_terakhir }}</td>
+                    <td>{{ f.catatan }}</td>
+                    <td>{% if f.ceklist_guru %}✔️{% else %}❌{% endif %}</td>
+                    <td>{% if f.ceklist_ortu %}✔️{% else %}❌{% endif %}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="text-muted">Belum ada nilai Tahfidz.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="row mt-5 text-center">
+            <div class="col-6">
+                <p>Mengetahui,<br>Orang Tua / Wali Siswa</p>
+                <br><br>
+                <p>( ________________________ )</p>
+            </div>
+            <div class="col-6">
+                <p>Guru Tahfizh / Musyrif</p>
+                <br><br>
+                <p>( ________________________ )</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
