@@ -64,21 +64,27 @@ def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        role = request.form.get('role')
 
         gurus = load_data(DATA_GURU_PATH)
 
+        # Cek apakah username terdaftar
         if username in gurus:
             user_data = gurus[username]
-            if user_data.get('password') == password and user_data.get('role') == role:
+            # Verifikasi password
+            if user_data.get('password') == password:
+                role = user_data.get('role', 'guru') # Otomatis deteksi role dari JSON
+                
                 session['user'] = user_data.get('nama', username)
                 session['role'] = role
+                session['kelas'] = user_data.get('kelas', '4A')
+
+                # Auto Redirect sesuai Role
                 if role == 'admin':
                     return redirect(url_for('dashboard_admin'))
                 else:
                     return redirect(url_for('dashboard_guru'))
 
-        flash('Username, Password, atau Akses tidak valid!', 'danger')
+        flash('Username atau Password salah!', 'danger')
     return render_template('login.html')
 
 @app.route('/logout')
@@ -333,7 +339,7 @@ def export_pdf():
 
 @app.route('/tambah_siswa', methods=['POST'])
 def tambah_siswa():
-    if session.get('role') != 'admin':
+    if session.get('role') not in ('admin', 'guru'):
         return redirect(url_for('login'))
 
     siswa_list = load_siswa()
@@ -352,7 +358,8 @@ def tambah_siswa():
     siswa_list.append(new_siswa)
     save_data(DATA_SISWA_PATH, siswa_list)
     flash('Data siswa berhasil ditambahkan!', 'success')
-    return redirect(url_for('dashboard_admin'))
+    redirect_target = 'dashboard_admin' if session.get('role') == 'admin' else 'dashboard_guru'
+    return redirect(url_for(redirect_target))
 
 @app.route('/tambah_guru', methods=['POST'])
 def tambah_guru():
