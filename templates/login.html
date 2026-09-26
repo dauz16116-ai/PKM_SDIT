@@ -2,45 +2,114 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Login - SDIT Kedisiplinan & Tahfizh</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light d-flex align-items-center" style="height: 100vh;">
-    <div class="container" style="max-width: 400px;">
-        <div class="card shadow border-0">
-            <div class="card-body p-4 text-center">
-                <img src="{{ url_for('static', filename='logo-sdit.png') }}" alt="Logo" class="mb-3" style="max-height: 80px;">
-                <h4 class="card-title fw-bold text-success">SDIT SIMA</h4>
-                <p class="text-muted small">Pencatatan Tahsin, Tahfidz & Poin Siswa</p>
-                
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ category }} p-2 text-start small">{{ message }}</div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - SIMA SDIT</title>
+    <!-- Bootstrap 5.3 & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-                <form method="POST" action="/login" class="text-start mt-3">
-                    <div class="mb-3">
-                        <label class="form-label">Username</label>
-                        <input type="text" name="username" class="form-control" required placeholder="Masukkan username">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #064e3b 0%, #059669 50%, #0f172a 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+            width: 100%;
+            max-width: 420px;
+            padding: 40px 32px;
+        }
+
+        .btn-success-custom {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 12px;
+            font-weight: 700;
+            color: #ffffff;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 14px rgba(5, 150, 105, 0.3);
+        }
+
+        .btn-success-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(5, 150, 105, 0.4);
+            color: #ffffff;
+        }
+
+        .form-control-custom {
+            border-radius: 12px;
+            padding: 12px 16px;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            font-size: 0.95rem;
+        }
+
+        .form-control-custom:focus {
+            background-color: #ffffff;
+            border-color: #059669;
+            box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.15);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card text-center">
+        <!-- Logo SDIT -->
+        <div class="mb-3">
+            <img src="{{ url_for('static', filename='logo-sdit.png') }}" alt="Logo SDIT" height="70" class="p-2 bg-white rounded-4 shadow-sm" onerror="this.src='https://placehold.co/80x80/059669/ffffff?text=SDIT'">
+        </div>
+
+        <h4 class="fw-bold text-dark mb-1">SDIT SIMA</h4>
+        <p class="text-muted small mb-4">Sistem Presensi, Karakter & Tahfizh Digital</p>
+
+        <!-- Flash Message Notification -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} p-2.5 rounded-3 text-start small mb-3 border-0 shadow-sm d-flex align-items-center gap-2">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <div>{{ message }}</div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Password</label>
-                        <input type="password" name="password" class="form-control" required placeholder="Masukkan password">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Akses Sebagai</label>
-                        <select name="role" class="form-select" required>
-                            <option value="admin">Administrator</option>
-                            <option value="guru">Guru / Musyrif Tahfizh</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-success w-100 mt-2">Masuk</button>
-                </form>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Form Login -->
+        <form method="POST" action="/login" class="text-start">
+            <div class="mb-3">
+                <label class="form-label fw-semibold small text-secondary">Username</label>
+                <div class="position-relative">
+                    <input type="text" name="username" class="form-control form-control-custom" placeholder="Masukkan username" required autocomplete="off">
+                </div>
             </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-semibold small text-secondary">Password</label>
+                <input type="password" name="password" class="form-control form-control-custom" placeholder="Masukkan password" required>
+            </div>
+
+            <button type="submit" class="btn btn-success-custom w-100">
+                <i class="bi bi-box-arrow-in-right me-1"></i> Masuk ke Sistem
+            </button>
+        </form>
+
+        <div class="mt-4 pt-3 border-top text-center">
+            <small class="text-muted" style="font-size: 0.75rem;">&copy; 2026 SDIT Kedisiplinan & Tahfizh</small>
         </div>
     </div>
+
 </body>
 </html>

@@ -25,6 +25,20 @@
                 "deskripsi": "Atribut Seragam Tidak Lengkap",
                 "poin": 5,
                 "pencatat": "Ferda Ayi"
+            },
+            {
+                "tanggal": "2026-09-26 14:35",
+                "kategori": "prestasi",
+                "deskripsi": "Melaksanakan Sholat Tepat Waktu",
+                "poin": 10,
+                "pencatat": "Ferda Ayi"
+            },
+            {
+                "tanggal": "2026-09-26 14:35",
+                "kategori": "pelanggaran",
+                "deskripsi": "Terlambat Masuk Sekolah",
+                "poin": 10,
+                "pencatat": "Ferda Ayi"
             }
         ],
         "tahsin": [
@@ -47,5 +61,113 @@
                 "penilai": "Ferda Ayi"
             }
         ]
+    },
+    {
+        "id": "S002",
+        "nama": "Ahmad Firdaus",
+        "kelas": "1A",
+        "poin": 60,
+        "catatan": [
+            {
+                "tanggal": "2026-09-26 15:03",
+                "kategori": "prestasi",
+                "deskripsi": "Melaksanakan Sholat Tepat Waktu",
+                "poin": 10,
+                "pencatat": "Ferda Ayi"
+            },
+            {
+                "tanggal": "2026-09-26 15:04",
+                "kategori": "prestasi",
+                "deskripsi": "Melaksanakan Sholat Tepat Waktu",
+                "poin": 10,
+                "pencatat": "Ferda Ayi"
+            },
+            {
+                "tanggal": "2026-09-26 15:04",
+                "kategori": "prestasi",
+                "deskripsi": "Melaksanakan Sholat Tepat Waktu",
+                "poin": 10,
+                "pencatat": "Ferda Ayi"
+            },
+            {
+                "tanggal": "2026-09-26 15:08",
+                "kategori": "pelanggaran",
+                "deskripsi": "Terlambat Masuk Sekolah",
+                "poin": 10,
+                "pencatat": "Ferda Ayi"
+            },
+            {
+                "tanggal": "2026-09-26 15:08",
+                "kategori": "pelanggaran",
+                "deskripsi": "Terlambat Masuk Sekolah",
+                "poin": 10,
+                "pencatat": "Ferda Ayi"
+            },
+            {
+                "tanggal": "2026-09-26 15:08",
+                "kategori": "pelanggaran",
+                "deskripsi": "Terlambat Masuk Sekolah",
+                "poin": 10,
+                "pencatat": "Ferda Ayi"
+            },
+            {
+                "tanggal": "2026-09-26 15:08",
+                "kategori": "pelanggaran",
+                "deskripsi": "Terlambat Masuk Sekolah",
+                "poin": 10,
+                "pencatat": "Ferda Ayi"
+            },
+            {
+                "tanggal": "2026-09-26 15:08",
+                "kategori": "pelanggaran",
+                "deskripsi": "Terlambat Masuk Sekolah",
+                "poin": 10,
+                "pencatat": "Ferda Ayi"
+            },
+            {
+                "tanggal": "2026-09-26 15:09",
+                "kategori": "prestasi",
+                "deskripsi": "Melaksanakan Sholat Tepat Waktu",
+                "poin": 10,
+                "pencatat": "Ferda Ayi"
+            },
+            {
+                "tanggal": "2026-09-26 15:09",
+                "kategori": "pelanggaran",
+                "deskripsi": "Terlambat Masuk Sekolah",
+                "poin": 10,
+                "pencatat": "Ferda Ayi"
+            },
+            {
+                "tanggal": "2026-09-26 15:09",
+                "kategori": "prestasi",
+                "deskripsi": "Melaksanakan Sholat Tepat Waktu",
+                "poin": 10,
+                "pencatat": "Ferda Ayi"
+            },
+            {
+                "tanggal": "2026-09-26 15:13",
+                "kategori": "pelanggaran",
+                "deskripsi": "Terlambat Masuk Sekolah",
+                "poin": 10,
+                "pencatat": "Ferda Ayi"
+            },
+            {
+                "tanggal": "2026-09-26 15:13",
+                "kategori": "pelanggaran",
+                "deskripsi": "Terlambat Masuk Sekolah",
+                "poin": 10,
+                "pencatat": "Ferda Ayi"
+            },
+            {
+                "tanggal": "2026-09-26 15:13",
+                "kategori": "pelanggaran",
+                "deskripsi": "Terlambat Masuk Sekolah",
+                "poin": 10,
+                "pencatat": "Ferda Ayi"
+            }
+        ],
+        "tahsin": [],
+        "tahfidz": []
     }
 ]

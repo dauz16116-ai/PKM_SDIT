@@ -2,217 +2,1582 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard Guru & Musyrif - SDIT</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMA SDIT - Dashboard Musyrif & Guru Modern</title>
+
+    <!-- Bootstrap 5.3 & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+    
+    <!-- ApexCharts -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        :root {
+            --primary: #059669;
+            --primary-dark: #065f46;
+            --primary-light: #10b981;
+            --primary-soft: #ecfdf5;
+            --accent: #3b82f6;
+            --accent-soft: #eff6ff;
+            --warning-soft: #fffbeb;
+            --danger-soft: #fef2f2;
+            --bg-body: #f8fafc;
+            --card-bg: #ffffff;
+            --border-subtle: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --radius-lg: 20px;
+            --radius-md: 14px;
+            --radius-sm: 8px;
+            --shadow-subtle: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+            --shadow-hover: 0 12px 30px -4px rgba(15, 23, 42, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- ANIMASI SMOOTH --- */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+            }
+        }
+
+        @keyframes scanBeam {
+            0% { top: 10%; opacity: 0.8; }
+            50% { top: 85%; opacity: 1; }
+            100% { top: 10%; opacity: 0.8; }
+        }
+
+        .anim-fade-in {
+            animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .delay-1 { animation-delay: 0.08s; }
+        .delay-2 { animation-delay: 0.16s; }
+        .delay-3 { animation-delay: 0.24s; }
+        .delay-4 { animation-delay: 0.32s; }
+
+        /* --- NAVBAR MODERN --- */
+        .navbar-custom {
+            background: linear-gradient(135deg, #064e3b 0%, #059669 65%, #10b981 100%);
+            box-shadow: 0 8px 24px -4px rgba(5, 150, 105, 0.35);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .navbar-brand img {
+            transition: transform 0.3s ease;
+        }
+        .navbar-brand:hover img {
+            transform: scale(1.05) rotate(-3deg);
+        }
+
+        .user-chip {
+            background: rgba(255, 255, 255, 0.14);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 50rem;
+            padding: 5px 14px;
+            color: #ffffff;
+            transition: all 0.25s ease;
+        }
+        .user-chip:hover {
+            background: rgba(255, 255, 255, 0.22);
+        }
+
+        /* --- HERO BANNER --- */
+        .hero-banner {
+            background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: var(--radius-lg);
+            padding: 24px 28px;
+            box-shadow: var(--shadow-subtle);
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-banner::after {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        /* --- CARDS & WIDGETS --- */
+        .card-modern {
+            background: var(--card-bg);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-subtle);
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+        }
+        .card-modern:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .kpi-card {
+            padding: 22px;
+            position: relative;
+            overflow: hidden;
+        }
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 4px;
+            width: 100%;
+            background: transparent;
+            transition: background 0.3s ease;
+        }
+        .kpi-card.kpi-emerald::before { background: linear-gradient(90deg, #10b981, #059669); }
+        .kpi-card.kpi-blue::before { background: linear-gradient(90deg, #3b82f6, #1d4ed8); }
+        .kpi-card.kpi-amber::before { background: linear-gradient(90deg, #f59e0b, #d97706); }
+        .kpi-card.kpi-purple::before { background: linear-gradient(90deg, #8b5cf6, #6d28d9); }
+
+        .kpi-icon-wrap {
+            width: 56px;
+            height: 56px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.65rem;
+            transition: transform 0.3s ease;
+        }
+        .kpi-card:hover .kpi-icon-wrap {
+            transform: scale(1.1) rotate(4deg);
+        }
+
+        /* --- QUICK ACTION BUTTONS (MODERN TOOLBAR) --- */
+        .btn-action-tile {
+            background: #ffffff;
+            border: 1.5px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 16px 18px;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-align: left;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+        .btn-action-tile:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px -4px rgba(5, 150, 105, 0.15);
+            border-color: var(--primary);
+            color: var(--primary-dark);
+        }
+        .btn-action-tile .action-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.35rem;
+            flex-shrink: 0;
+            transition: transform 0.25s ease;
+        }
+        .btn-action-tile:hover .action-icon {
+            transform: scale(1.12);
+        }
+
+        /* --- TABLE STYLING --- */
+        .table-responsive {
+            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+        }
+        .table-custom {
+            margin-bottom: 0;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .table-custom thead th {
+            background-color: #f8fafc;
+            color: var(--text-muted);
+            font-size: 0.76rem;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            font-weight: 700;
+            border-bottom: 2px solid #e2e8f0;
+            padding: 14px 18px;
+            white-space: nowrap;
+        }
+        .table-custom tbody tr {
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+        .table-custom tbody tr:hover {
+            background-color: #f1f8f5 !important;
+        }
+        .table-custom tbody td {
+            padding: 16px 18px;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+            font-size: 0.9rem;
+        }
+
+        /* --- QUICK POIN BUTTONS (ULTRA REFINED) --- */
+        .badge-btn {
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 50rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid transparent;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+            cursor: pointer;
+        }
+        .badge-btn:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 5px 14px rgba(0, 0, 0, 0.12);
+            color: #fff;
+        }
+        .badge-btn:active {
+            transform: scale(0.96);
+        }
+
+        .badge-sholat {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #fff;
+        }
+        .badge-rapi {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: #fff;
+        }
+        .badge-telat {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: #fff;
+        }
+        .badge-atribut {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: #fff;
+        }
+
+        /* --- ACTION BUTTONS --- */
+        .btn-act {
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.82rem;
+            padding: 6px 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s ease;
+        }
+        .btn-act:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        /* --- PROGRESS BAR POIN --- */
+        .poin-meter {
+            width: 90px;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 50rem;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+        .poin-meter-bar {
+            height: 100%;
+            border-radius: 50rem;
+            transition: width 0.6s ease;
+        }
+
+        /* --- FILTER TABS --- */
+        .filter-pill {
+            padding: 7px 16px;
+            font-size: 0.84rem;
+            font-weight: 600;
+            border-radius: 50rem;
+            border: 1px solid var(--border-subtle);
+            background: #ffffff;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .filter-pill:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            color: var(--text-main);
+        }
+        .filter-pill.active {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+            box-shadow: 0 3px 12px rgba(5, 150, 105, 0.25);
+        }
+
+        /* --- QR SCANNER MODAL VIEWFINDER --- */
+        .qr-scanner-box {
+            position: relative;
+            width: 260px;
+            height: 260px;
+            margin: 0 auto;
+            border-radius: 20px;
+            background: #0f172a;
+            overflow: hidden;
+            border: 2px solid #334155;
+            box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8), 0 10px 30px rgba(0,0,0,0.15);
+        }
+        .scanner-beam {
+            position: absolute;
+            width: 100%;
+            height: 3px;
+            background: #10b981;
+            box-shadow: 0 0 16px 4px #10b981;
+            animation: scanBeam 2.4s infinite ease-in-out;
+        }
+        .scanner-reticle {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            border-color: #10b981;
+            border-style: solid;
+        }
+        .scanner-reticle.tl { top: 16px; left: 16px; border-width: 3px 0 0 3px; border-top-left-radius: 8px; }
+        .scanner-reticle.tr { top: 16px; right: 16px; border-width: 3px 3px 0 0; border-top-right-radius: 8px; }
+        .scanner-reticle.bl { bottom: 16px; left: 16px; border-width: 0 0 3px 3px; border-bottom-left-radius: 8px; }
+        .scanner-reticle.br { bottom: 16px; right: 16px; border-width: 0 3px 3px 0; border-bottom-right-radius: 8px; }
+
+        /* Modal backdrop glass */
+        .modal-content {
+            border-radius: 20px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 20px 50px -10px rgba(15, 23, 42, 0.2);
+        }
+
+        /* Avatar gradient circle */
+        .avatar-circle {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1rem;
+            color: #fff;
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            box-shadow: 0 4px 10px rgba(5, 150, 105, 0.2);
+            flex-shrink: 0;
+        }
+
+        /* Timeline for riwayat modal */
+        .timeline-item {
+            position: relative;
+            padding-left: 28px;
+            margin-bottom: 18px;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 6px;
+            top: 6px;
+            bottom: -18px;
+            width: 2px;
+            background: #e2e8f0;
+        }
+        .timeline-item:last-child::before {
+            display: none;
+        }
+        .timeline-dot {
+            position: absolute;
+            left: 0;
+            top: 4px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #fff;
+            border: 3px solid var(--primary);
+        }
+    </style>
 </head>
-<body class="bg-light">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-success shadow-sm">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="#">
-                <img src="{{ url_for('static', filename='logo-sdit.png') }}" height="30" class="me-2">
-                <span>Dashboard Tahsin & Tahfidz Guru</span>
+<body>
+
+    <!-- NAVBAR RESMI & MODERN -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top py-2 mb-4">
+        <div class="container-fluid px-3 px-lg-4">
+            <a class="navbar-brand d-flex align-items-center gap-3 fw-bold" href="#">
+                <img src="{{ url_for('static', filename='logo-sdit.png') }}" height="42" class="bg-white p-1 rounded-3 shadow-sm" alt="Logo SDIT" onerror="this.src='https://placehold.co/80x80/059669/ffffff?text=SDIT'">
+                <div>
+                    <div class="fs-5 lh-1 mt-1 text-white fw-extrabold tracking-tight">SIMA SDIT</div>
+                    <small class="text-white-50 fw-normal" style="font-size: 0.72rem; letter-spacing: 0.3px;">Portal Karakter, Tahsin & Tahfidz</small>
+                </div>
             </a>
-            <div class="d-flex align-items-center text-white">
-                <span class="me-3"><i class="bi bi-person-badge"></i> {{ session.get('user') }}</span>
-                <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
+
+            <!-- Jam Realtime & Status Sesi -->
+            <div class="d-none d-lg-flex align-items-center gap-2 user-chip">
+                <i class="bi bi-clock-history text-warning"></i>
+                <span id="liveClock" class="small fw-semibold">Memuat waktu...</span>
+            </div>
+
+            <!-- Profile & Logout -->
+            <div class="d-flex align-items-center gap-2 gap-md-3">
+                <div class="d-none d-sm-block text-end text-white">
+                    <div class="fw-bold fs-6 lh-1">{{ session.get('user', 'Musyrif') }}</div>
+                    <div class="d-flex align-items-center justify-content-end gap-1 mt-1">
+                        <span class="badge bg-success bg-opacity-75 text-white" style="font-size: 0.65rem;">
+                            <i class="bi bi-person-check-fill me-1"></i>Musyrif
+                        </span>
+                        <span class="badge bg-white text-dark fw-bold" style="font-size: 0.65rem;">
+                            Kelas {{ session.get('kelas', '4A') }}
+                        </span>
+                    </div>
+                </div>
+                <a href="/logout" class="btn btn-light btn-sm rounded-pill px-3 py-2 fw-bold text-success shadow-sm d-flex align-items-center gap-2" style="font-size: 0.82rem;">
+                    <i class="bi bi-box-arrow-right"></i> <span class="d-none d-md-inline">Keluar</span>
+                </a>
             </div>
         </div>
     </nav>
 
-    <div class="container my-4">
+    <!-- MAIN CONTAINER -->
+    <div class="container-fluid px-3 px-lg-4 mb-5">
+
+        <!-- NOTIFIKASI TOAST DARI FLASK -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show">{{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
+                    <script>
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: '{{ "success" if category == "success" else "error" }}',
+                            title: '{{ message }}',
+                            showConfirmButton: false,
+                            timer: 3500,
+                            timerProgressBar: true
+                        });
+                    </script>
                 {% endfor %}
             {% endif %}
         {% endwith %}
 
-        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-            <h4 class="fw-bold mb-0">Data Siswa Bimbingan</h4>
-            <div class="d-flex flex-wrap gap-2">
-                <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#modalImportExcel">
-                    <i class="bi bi-file-earmark-excel"></i> Import Excel
-                </button>
-
-                <div class="btn-group">
-                    <button type="button" class="btn btn-warning text-dark dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-download"></i> Export Data
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="/export_excel"><i class="bi bi-file-earmark-excel me-1"></i> Export Excel (.xlsx)</a></li>
-                        <li><a class="dropdown-item" href="/export_csv"><i class="bi bi-file-earmark-spreadsheet me-1"></i> Export CSV</a></li>
-                        <li><a class="dropdown-item" href="/export_pdf" target="_blank"><i class="bi bi-file-earmark-pdf me-1"></i> Export / Cetak PDF (Semua Siswa)</a></li>
-                    </ul>
+        <!-- HERO GREETING BANNER -->
+        <div class="hero-banner mb-4 anim-fade-in">
+            <div class="row align-items-center g-3">
+                <div class="col-12 col-lg-8">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="badge bg-success bg-opacity-10 text-success fw-bold px-3 py-1 rounded-pill">
+                            <i class="bi bi-patch-check-fill me-1"></i> Tahun Ajaran Aktif 2026/2027
+                        </span>
+                        <span class="text-muted small">• Semester Genap</span>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-1">Ahlan wa Sahlan, {{ session.get('user', 'Ustadz / Ustadzah') }}! 🌟</h3>
+                    <p class="text-muted mb-0 small">
+                        Kelola data kedisiplinan akhlak, presensi sholat, serta mutaba'ah hafalan Qur'an santri kelas <strong class="text-dark">{{ session.get('kelas', '4A') }}</strong> secara cepat dan akurat.
+                    </p>
+                </div>
+                <div class="col-12 col-lg-4 text-lg-end">
+                    <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+                        <button class="btn btn-outline-success btn-sm rounded-pill px-3 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalScanQR">
+                            <i class="bi bi-qr-code-scan me-1"></i> Scan QR Cepat
+                        </button>
+                        <button class="btn btn-success btn-sm rounded-pill px-3 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalTambahSiswa">
+                            <i class="bi bi-person-plus-fill me-1"></i> + Tambah Siswa
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="card shadow-sm border-0 mb-4">
-            <div class="card-body">
-                <form method="GET" action="/dashboard_guru" class="row g-2">
-                    <div class="col-md-10">
-                        <input type="text" name="q" class="form-control" placeholder="Cari nama, kelas, ID siswa..." value="{{ request.args.get('q', '') }}">
+        <!-- STATISTIK / KPI METRICS (DINAMIS DARI DATA SISWA) -->
+        {% set total_siswa = siswa_list|length if siswa_list else 0 %}
+        {% set total_poin = siswa_list|map(attribute='poin')|sum if total_siswa > 0 else 0 %}
+        {% set avg_poin = (total_poin / total_siswa)|round(1) if total_siswa > 0 else 100 %}
+        
+        {# Hitung siswa yang butuh perhatian vs teladan #}
+        {% set ns = namespace(perhatian=0, teladan=0, total_tahsin=0, total_tahfidz=0) %}
+        {% for s in siswa_list %}
+            {% if s.poin < 90 %}
+                {% set ns.perhatian = ns.perhatian + 1 %}
+            {% elif s.poin >= 100 %}
+                {% set ns.teladan = ns.teladan + 1 %}
+            {% endif %}
+            {% set ns.total_tahsin = ns.total_tahsin + (s.tahsin|length) %}
+            {% set ns.total_tahfidz = ns.total_tahfidz + (s.tahfidz|length) %}
+        {% endfor %}
+
+        <div class="row g-3 g-xl-4 mb-4">
+            <!-- KPI 1: Total Siswa -->
+            <div class="col-12 col-sm-6 col-xl-3 anim-fade-in delay-1">
+                <div class="card-modern kpi-card kpi-emerald h-100">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Total Siswa Binaan</span>
+                            <div class="d-flex align-items-baseline gap-2 mt-1">
+                                <h2 class="fw-bold mb-0 text-dark">{{ total_siswa }}</h2>
+                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill fw-semibold small">Kelas {{ session.get('kelas', '4A') }}</span>
+                            </div>
+                            <small class="text-muted" style="font-size: 0.75rem;"><i class="bi bi-check2-circle text-success me-1"></i>Semua santri terdaftar</small>
+                        </div>
+                        <div class="kpi-icon-wrap bg-success bg-opacity-10 text-success">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
                     </div>
-                    <div class="col-md-2">
-                        <button type="submit" class="btn btn-success w-100">Cari</button>
+                </div>
+            </div>
+
+            <!-- KPI 2: Rata-rata Poin Disiplin -->
+            <div class="col-12 col-sm-6 col-xl-3 anim-fade-in delay-2">
+                <div class="card-modern kpi-card kpi-blue h-100">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Rata-rata Disiplin</span>
+                            <div class="d-flex align-items-baseline gap-2 mt-1">
+                                <h2 class="fw-bold mb-0 text-dark">{{ avg_poin }}</h2>
+                                <span class="badge {{ 'bg-success' if avg_poin >= 90 else 'bg-warning text-dark' }} bg-opacity-10 rounded-pill fw-semibold small">
+                                    {{ 'Sangat Baik' if avg_poin >= 95 else ('Baik' if avg_poin >= 90 else 'Perlu Bimbingan') }}
+                                </span>
+                            </div>
+                            <small class="text-muted" style="font-size: 0.75rem;"><i class="bi bi-shield-check text-primary me-1"></i>Skor kedisiplinan rombel</small>
+                        </div>
+                        <div class="kpi-icon-wrap bg-primary bg-opacity-10 text-primary">
+                            <i class="bi bi-award-fill"></i>
+                        </div>
                     </div>
-                </form>
+                </div>
+            </div>
+
+            <!-- KPI 3: Aktivitas Tahsin & Tahfidz -->
+            <div class="col-12 col-sm-6 col-xl-3 anim-fade-in delay-3">
+                <div class="card-modern kpi-card kpi-purple h-100">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Setoran Qur'an</span>
+                            <div class="d-flex align-items-baseline gap-2 mt-1">
+                                <h2 class="fw-bold mb-0 text-dark">{{ ns.total_tahfidz + ns.total_tahsin }}</h2>
+                                <span class="badge bg-purple bg-opacity-10 text-primary rounded-pill fw-semibold small">Total Mutaba'ah</span>
+                            </div>
+                            <small class="text-muted" style="font-size: 0.75rem;"><i class="bi bi-book text-info me-1"></i>{{ ns.total_tahfidz }} Tahfidz • {{ ns.total_tahsin }} Tahsin</small>
+                        </div>
+                        <div class="kpi-icon-wrap bg-info bg-opacity-10 text-info">
+                            <i class="bi bi-journal-bookmark-fill"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI 4: Perhatian & Pembinaan -->
+            <div class="col-12 col-sm-6 col-xl-3 anim-fade-in delay-4">
+                <div class="card-modern kpi-card kpi-amber h-100">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Status Kedisiplinan</span>
+                            <div class="d-flex align-items-baseline gap-2 mt-1">
+                                <h2 class="fw-bold mb-0 text-dark">{{ ns.teladan }} <span class="fs-6 fw-normal text-muted">Teladan</span></h2>
+                            </div>
+                            <small class="{{ 'text-danger fw-bold' if ns.perhatian > 0 else 'text-muted' }}" style="font-size: 0.75rem;">
+                                <i class="bi {{ 'bi-exclamation-triangle-fill text-danger' if ns.perhatian > 0 else 'bi-check-all text-success' }} me-1"></i>
+                                {{ ns.perhatian }} Siswa skor < 90
+                            </small>
+                        </div>
+                        <div class="kpi-icon-wrap bg-warning bg-opacity-10 text-warning">
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="card shadow-sm border-0">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-success text-center">
-                            <tr>
-                                <th>ID</th>
-                                <th>Nama Siswa</th>
-                                <th>Kelas</th>
-                                <th>Poin</th>
-                                <th>Klik Poin Cepat</th>
-                                <th>Input Perminggu</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for s in siswa_list %}
-                            <tr>
-                                <td class="text-center"><span class="badge bg-secondary">{{ s.id }}</span></td>
-                                <td class="fw-bold">{{ s.nama }}</td>
-                                <td class="text-center">{{ s.kelas }}</td>
-                                <td class="text-center"><span class="badge bg-success fs-6">{{ s.poin }}</span></td>
-                                <td class="text-center">
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <a href="/quick_poin/{{ s.id }}/sholat/10" class="btn btn-outline-success" title="Sholat Tepat Waktu">+10 Sholat</a>
-                                        <a href="/quick_poin/{{ s.id }}/pakaian/5" class="btn btn-outline-primary" title="Seragam Rapi">+5 Rapi</a>
-                                        <a href="/quick_poin/{{ s.id }}/terlambat/10" class="btn btn-outline-danger" title="Terlambat">-10 Terlambat</a>
-                                        <a href="/quick_poin/{{ s.id }}/atribut/5" class="btn btn-outline-warning text-dark" title="Atribut Kurang">-5 Atribut</a>
+        <!-- ANALYTICS CHART & AKSI CEPAT -->
+        <div class="row g-4 mb-4">
+            <!-- Area Grafik Canggih -->
+            <div class="col-12 col-lg-8">
+                <div class="card-modern p-4 h-100">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 pb-2 border-bottom">
+                        <div>
+                            <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                                <i class="bi bi-bar-chart-line-fill text-success"></i> Analisis Perkembangan Santri
+                            </h6>
+                            <small class="text-muted">Grafik tren akumulasi hafalan & kedisiplinan pekanan</small>
+                        </div>
+                        <!-- Tab toggle chart view -->
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-success active" id="btnChartTren" onclick="switchChartMode('trend')">
+                                <i class="bi bi-graph-up me-1"></i> Tren Mingguan
+                            </button>
+                            <button type="button" class="btn btn-outline-success" id="btnChartDistribusi" onclick="switchChartMode('distribusi')">
+                                <i class="bi bi-person-lines-fill me-1"></i> Poin per Siswa
+                            </button>
+                        </div>
+                    </div>
+                    <div id="chartAnalytics" style="min-height: 270px;"></div>
+                </div>
+            </div>
+
+            <!-- Toolbar Aksi Cepat Guru -->
+            <div class="col-12 col-lg-4">
+                <div class="card-modern p-4 h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                            <h6 class="fw-bold mb-0 text-dark">
+                                <i class="bi bi-lightning-charge-fill text-warning me-1"></i> Menu Aksi Cepat
+                            </h6>
+                            <span class="badge bg-light text-secondary border">Shortcuts</span>
+                        </div>
+                        <p class="text-muted small mb-3">Akses instan perekaman presensi kartu, administrasi murid, dan arsip data.</p>
+                        
+                        <div class="d-flex flex-column gap-2 mb-3">
+                            <!-- Scan QR -->
+                            <button class="btn btn-action-tile" data-bs-toggle="modal" data-bs-target="#modalScanQR">
+                                <div class="action-icon bg-success bg-opacity-10 text-success">
+                                    <i class="bi bi-qr-code-scan"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold">Scan Kartu Pelajar</div>
+                                    <small class="text-muted fw-normal" style="font-size: 0.75rem;">Deteksi otomatis siswa via QR</small>
+                                </div>
+                            </button>
+
+                            <!-- Tambah Murid -->
+                            <button class="btn btn-action-tile" data-bs-toggle="modal" data-bs-target="#modalTambahSiswa">
+                                <div class="action-icon bg-primary bg-opacity-10 text-primary">
+                                    <i class="bi bi-person-plus-fill"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold">Tambah Murid Baru</div>
+                                    <small class="text-muted fw-normal" style="font-size: 0.75rem;">Registrasi ke kelas {{ session.get('kelas', '4A') }}</small>
+                                </div>
+                            </button>
+
+                            <!-- Dropdown Export & Cetak -->
+                            <div class="dropdown">
+                                <button class="btn btn-action-tile dropdown-toggle w-100" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <div class="action-icon bg-warning bg-opacity-10 text-warning">
+                                        <i class="bi bi-cloud-arrow-down-fill"></i>
                                     </div>
-                                </td>
-                                <td class="text-center">
-                                    <button class="btn btn-sm btn-info me-1 text-white" data-bs-toggle="modal" data-bs-target="#modalTahsin{{ s.id }}">
+                                    <div>
+                                        <div class="fw-bold">Ekspor & Laporan Rombel</div>
+                                        <small class="text-muted fw-normal" style="font-size: 0.75rem;">Unduh Excel, CSV & Cetak PDF</small>
+                                    </div>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-4 p-2 w-100 mt-1">
+                                    <li>
+                                        <a class="dropdown-item py-2 rounded-3 fw-semibold small d-flex align-items-center" href="/export_excel">
+                                            <i class="bi bi-file-earmark-excel text-success fs-5 me-2"></i> Download Rekap (.xlsx)
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-2 rounded-3 fw-semibold small d-flex align-items-center" href="/export_csv">
+                                            <i class="bi bi-filetype-csv text-primary fs-5 me-2"></i> Download Rekap (.csv)
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-2 rounded-3 fw-semibold small d-flex align-items-center" href="/export_pdf" target="_blank">
+                                            <i class="bi bi-printer text-danger fs-5 me-2"></i> Cetak Rekapitulasi Rapor PDF
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider my-1"></li>
+                                    <li>
+                                        <a class="dropdown-item py-2 rounded-3 fw-semibold small d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#modalImportExcel">
+                                            <i class="bi bi-file-earmark-arrow-up text-secondary fs-5 me-2"></i> Import dari File Excel
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mini tips motivasi Islami -->
+                    <div class="p-3 bg-light rounded-3 border">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="bi bi-quote fs-4 text-success lh-1"></i>
+                            <p class="small text-muted mb-0 italic" style="font-size: 0.76rem;">
+                                "Sebaik-baik kalian adalah orang yang belajar Al-Qur'an dan mengajarkannya." (HR. Bukhari)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TABEL DATA SISWA BIMBINGAN LENGKAP -->
+        <div class="card-modern overflow-hidden">
+            <!-- Header Filter & Search -->
+            <div class="p-4 border-bottom bg-white">
+                <div class="row align-items-center g-3">
+                    <div class="col-12 col-md-5">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="bg-success bg-opacity-10 text-success p-2 rounded-3">
+                                <i class="bi bi-mortarboard-fill fs-5"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-0 text-dark">Data Santri & Mutaba'ah</h5>
+                                <small class="text-muted">Total {{ total_siswa }} siswa dalam rombongan belajar</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-12 col-md-7">
+                        <div class="d-flex flex-wrap align-items-center justify-content-md-end gap-2">
+                            <!-- Real-time Live Search Input -->
+                            <div class="position-relative flex-grow-1 flex-md-grow-0" style="min-width: 240px;">
+                                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                                <input type="text" id="liveSearchInput" class="form-control rounded-pill ps-5 bg-light border" placeholder="Cari nama atau ID santri..." onkeyup="filterTabelRealtime()">
+                                <button type="button" id="clearSearchBtn" class="btn btn-sm text-muted position-absolute top-50 end-0 translate-middle-y me-2 d-none" onclick="clearLiveSearch()">
+                                    <i class="bi bi-x-circle-fill"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kategori Filter Tabs -->
+                <div class="d-flex flex-wrap align-items-center gap-2 mt-3 pt-3 border-top">
+                    <span class="small fw-bold text-muted me-1"><i class="bi bi-funnel me-1"></i>Filter:</span>
+                    <button type="button" class="filter-pill active" onclick="setFilterStatus('all', this)">
+                        Semua Siswa <span class="badge bg-secondary text-white rounded-pill ms-1">{{ total_siswa }}</span>
+                    </button>
+                    <button type="button" class="filter-pill" onclick="setFilterStatus('teladan', this)">
+                        <i class="bi bi-star-fill text-warning"></i> Disiplin Teladan (≥100) 
+                        <span class="badge bg-success text-white rounded-pill ms-1">{{ ns.teladan }}</span>
+                    </button>
+                    <button type="button" class="filter-pill" onclick="setFilterStatus('standar', this)">
+                        Standar (90-99)
+                    </button>
+                    <button type="button" class="filter-pill" onclick="setFilterStatus('perhatian', this)">
+                        <i class="bi bi-exclamation-triangle text-danger"></i> Perlu Pembinaan (<90) 
+                        <span class="badge bg-danger text-white rounded-pill ms-1">{{ ns.perhatian }}</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Table Container -->
+            <div class="table-responsive">
+                <table class="table table-custom align-middle" id="tableSiswa">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Santri</th>
+                            <th>Kelas</th>
+                            <th>Kedisiplinan</th>
+                            <th>Poin Cepat (Klik Tambah/Kurang)</th>
+                            <th class="text-center">Aksi Mutaba'ah & Laporan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in siswa_list %}
+                        {% set p_status = 'teladan' if s.poin >= 100 else ('standar' if s.poin >= 90 else 'perhatian') %}
+                        <tr class="siswa-row" data-id="{{ s.id }}" data-nama="{{ s.nama|lower }}" data-kelas="{{ s.kelas|lower }}" data-status="{{ p_status }}">
+                            <!-- Kolom Profil Santri -->
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar-circle">
+                                        {{ s.nama[0]|upper }}
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark fs-6">{{ s.nama }}</div>
+                                        <div class="d-flex align-items-center gap-2 mt-0">
+                                            <span class="badge bg-light text-secondary border px-2 py-0 small" style="font-size: 0.7rem;">ID: {{ s.id }}</span>
+                                            {% if s.poin >= 100 %}
+                                                <span class="badge bg-warning bg-opacity-10 text-dark fw-bold" style="font-size: 0.68rem;"><i class="bi bi-star-fill text-warning me-1"></i>Santri Teladan</span>
+                                            {% elif s.poin < 90 %}
+                                                <span class="badge bg-danger bg-opacity-10 text-danger fw-bold" style="font-size: 0.68rem;"><i class="bi bi-exclamation-circle-fill me-1"></i>Perhatian</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <!-- Kolom Kelas -->
+                            <td>
+                                <span class="badge bg-light text-dark border px-3 py-2 rounded-3 fw-bold">
+                                    {{ s.kelas }}
+                                </span>
+                            </td>
+
+                            <!-- Kolom Skor Disiplin & Visual Meter -->
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    {% if s.poin >= 90 %}
+                                        <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill border border-success border-opacity-25 fs-6 fw-bold">
+                                            <i class="bi bi-shield-check me-1"></i> {{ s.poin }} Poin
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill border border-danger border-opacity-25 fs-6 fw-bold">
+                                            <i class="bi bi-shield-exclamation me-1"></i> {{ s.poin }} Poin
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <div class="poin-meter" title="Level Disiplin: {{ s.poin }}%">
+                                    {% set percent = [s.poin, 100]|min %}
+                                    <div class="poin-meter-bar {{ 'bg-success' if s.poin >= 90 else ('bg-warning' if s.poin >= 75 else 'bg-danger') }}" style="width: {{ percent }}%;"></div>
+                                </div>
+                            </td>
+
+                            <!-- Kolom Quick Points 1-Klik -->
+                            <td>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <a href="/quick_poin/{{ s.id }}/sholat/10" class="badge-btn badge-sholat" title="Sholat Tepat Waktu (+10 Poin)" onclick="confirmPoin(event, this, '{{ s.nama }}', 'Sholat Tepat Waktu', '+10')">
+                                        <i class="bi bi-plus-lg"></i> Sholat +10
+                                    </a>
+                                    <a href="/quick_poin/{{ s.id }}/pakaian/5" class="badge-btn badge-rapi" title="Pakaian Rapi & Bersih (+5 Poin)" onclick="confirmPoin(event, this, '{{ s.nama }}', 'Pakaian Rapi', '+5')">
+                                        <i class="bi bi-plus-lg"></i> Rapi +5
+                                    </a>
+                                    <a href="/quick_poin/{{ s.id }}/terlambat/10" class="badge-btn badge-telat" title="Terlambat Masuk Sekolah (-10 Poin)" onclick="confirmPoin(event, this, '{{ s.nama }}', 'Terlambat Masuk', '-10')">
+                                        <i class="bi bi-dash-lg"></i> Telat -10
+                                    </a>
+                                    <a href="/quick_poin/{{ s.id }}/atribut/5" class="badge-btn badge-atribut" title="Atribut Tidak Lengkap (-5 Poin)" onclick="confirmPoin(event, this, '{{ s.nama }}', 'Atribut Kurang', '-5')">
+                                        <i class="bi bi-dash-lg"></i> Atribut -5
+                                    </a>
+                                </div>
+                            </td>
+
+                            <!-- Kolom Aksi Lengkap -->
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center align-items-center gap-2">
+                                    <!-- Tombol Input Tahsin -->
+                                    <button class="btn btn-act btn-info text-white" data-bs-toggle="modal" data-bs-target="#modalTahsin{{ s.id }}" title="Input Nilai Tahsin">
                                         <i class="bi bi-book"></i> Tahsin
                                     </button>
-                                    <button class="btn btn-sm btn-success me-1" data-bs-toggle="modal" data-bs-target="#modalTahfidz{{ s.id }}">
-                                        <i class="bi bi-journal-bookmark"></i> Tahfidz
+                                    
+                                    <!-- Tombol Input Tahfidz -->
+                                    <button class="btn btn-act btn-success" data-bs-toggle="modal" data-bs-target="#modalTahfidz{{ s.id }}" title="Input Hafalan Tahfidz">
+                                        <i class="bi bi-journal-check"></i> Tahfidz
                                     </button>
-                                    <a href="/cetak_hafalan/{{ s.id }}" target="_blank" class="btn btn-sm btn-outline-dark" title="Cetak laporan Tahsin & Tahfidz mingguan siswa ini">
-                                        <i class="bi bi-printer"></i> Cetak
+
+                                    <!-- Tombol Riwayat Lengkap (CANGGIH) -->
+                                    <button class="btn btn-act btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalRiwayat{{ s.id }}" title="Lihat Riwayat & Rekam Jejak">
+                                        <i class="bi bi-clock-history"></i> Riwayat
+                                    </button>
+                                    
+                                    <!-- Tombol Kirim WhatsApp Ortu -->
+                                    <button class="btn btn-act btn-outline-success" onclick="kirimWA('{{ s.nama }}', '{{ s.kelas }}', '{{ s.poin }}', '{{ s.tahfidz[-1].hafalan_terakhir if s.tahfidz else 'Belum ada catatan' }}')" title="Kirim Laporan WA ke Orang Tua">
+                                        <i class="bi bi-whatsapp"></i>
+                                    </button>
+                                    
+                                    <!-- Tombol Cetak Rapor Hafalan -->
+                                    <a href="/cetak_hafalan/{{ s.id }}" target="_blank" class="btn btn-act btn-outline-dark" title="Cetak Lembar Hafalan PDF">
+                                        <i class="bi bi-printer"></i>
                                     </a>
-                                </td>
-                            </tr>
+                                </div>
+                            </td>
+                        </tr>
 
-                            <!-- Modal Tahsin Perminggu -->
-                            <div class="modal fade" id="modalTahsin{{ s.id }}" tabindex="-1">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <form action="/catat_tahsin/{{ s.id }}" method="POST">
-                                            <div class="modal-header bg-info text-white">
-                                                <h5 class="modal-title">Input Tahsin Perminggu - {{ s.nama }}</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        <!-- MODAL TAHSIN -->
+                        <div class="modal fade" id="modalTahsin{{ s.id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content border-0 shadow-lg">
+                                    <form action="/catat_tahsin/{{ s.id }}" method="POST">
+                                        <div class="modal-header bg-info text-white border-0 py-3" style="border-radius: 20px 20px 0 0;">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <i class="bi bi-book fs-5"></i>
+                                                <h5 class="modal-title fw-bold mb-0">Input Tahsin Santri</h5>
                                             </div>
-                                            <div class="modal-body">
-                                                <div class="mb-3">
-                                                    <label class="form-label">Tanggal Setor</label>
-                                                    <input type="date" name="tanggal" class="form-control" required>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body p-4">
+                                            <div class="alert alert-info bg-info bg-opacity-10 border-0 d-flex align-items-center gap-2 py-2 mb-3">
+                                                <i class="bi bi-person-fill text-info fs-5"></i>
+                                                <div class="small fw-semibold text-dark">{{ s.nama }} • Kelas {{ s.kelas }}</div>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold small text-muted">Tanggal Setor</label>
+                                                <input type="date" name="tanggal" class="form-control rounded-3 bg-light border" value="{{ now_date if now_date else '' }}" required id="dateTahsin{{ s.id }}">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold small text-muted">Halaman / Jilid Terakhir</label>
+                                                <input type="text" name="halaman_akhir" class="form-control rounded-3 bg-light border" placeholder="Contoh: Wafa Jilid 3 Hal. 15 / Al-Qur'an Juz 1" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold small text-muted">Catatan Makhorijul & Kelancaran</label>
+                                                <textarea name="catatan" class="form-control rounded-3 bg-light border" rows="3" placeholder="Contoh: Mad thobi'i sudah fasih, perhatikan ikhfa haqiqi"></textarea>
+                                            </div>
+                                            <div class="p-3 bg-light rounded-3 mb-2">
+                                                <div class="form-check form-switch mb-2">
+                                                    <input type="checkbox" name="ceklist_guru" class="form-check-input" id="checkGuruTahsin{{ s.id }}" checked>
+                                                    <label class="form-check-label fw-semibold small" for="checkGuruTahsin{{ s.id }}">Validasi Guru / Musyrif</label>
                                                 </div>
-                                                <div class="mb-3">
-                                                    <label class="form-label">Halaman Akhir yang Dibaca</label>
-                                                    <input type="text" name="halaman_akhir" class="form-control" placeholder="Contoh: Hal. 45 / Jilid 3 Hal. 12" required>
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label class="form-label">Catatan Guru</label>
-                                                    <textarea name="catatan" class="form-control" rows="2" placeholder="Catatan kelancaran tajwid/makhraj..."></textarea>
-                                                </div>
-                                                <div class="form-check mb-2">
-                                                    <input type="checkbox" name="ceklist_guru" class="form-check-input" id="cg{{ s.id }}" checked>
-                                                    <label class="form-check-label" for="cg{{ s.id }}">Ceklist Guru / Musyrif</label>
-                                                </div>
-                                                <div class="form-check mb-2">
-                                                    <input type="checkbox" name="ceklist_ortu" class="form-check-input" id="co{{ s.id }}">
-                                                    <label class="form-check-label" for="co{{ s.id }}">Ceklist Orang Tua</label>
+                                                <div class="form-check form-switch">
+                                                    <input type="checkbox" name="ceklist_ortu" class="form-check-input" id="checkOrtuTahsin{{ s.id }}">
+                                                    <label class="form-check-label fw-semibold small" for="checkOrtuTahsin{{ s.id }}">Konfirmasi Pendampingan Orang Tua</label>
                                                 </div>
                                             </div>
-                                            <div class="modal-footer">
-                                                <button type="submit" class="btn btn-info text-white">Simpan Tahsin</button>
+                                        </div>
+                                        <div class="modal-footer border-0 p-4 pt-0">
+                                            <button type="button" class="btn btn-light rounded-3 fw-bold" data-bs-dismiss="modal">Batal</button>
+                                            <button type="submit" class="btn btn-info text-white rounded-3 fw-bold px-4">
+                                                <i class="bi bi-save me-1"></i> Simpan Tahsin
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- MODAL TAHFIDZ -->
+                        <div class="modal fade" id="modalTahfidz{{ s.id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content border-0 shadow-lg">
+                                    <form action="/catat_tahfidz/{{ s.id }}" method="POST">
+                                        <div class="modal-header bg-success text-white border-0 py-3" style="border-radius: 20px 20px 0 0;">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <i class="bi bi-journal-check fs-5"></i>
+                                                <h5 class="modal-title fw-bold mb-0">Input Setoran Tahfidz</h5>
                                             </div>
-                                        </form>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body p-4">
+                                            <div class="alert alert-success bg-success bg-opacity-10 border-0 d-flex align-items-center gap-2 py-2 mb-3">
+                                                <i class="bi bi-person-fill text-success fs-5"></i>
+                                                <div class="small fw-semibold text-dark">{{ s.nama }} • Kelas {{ s.kelas }}</div>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold small text-muted">Tanggal Setor</label>
+                                                <input type="date" name="tanggal" class="form-control rounded-3 bg-light border" value="{{ now_date if now_date else '' }}" required id="dateTahfidz{{ s.id }}">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold small text-muted">Hafalan Surah & Ayat</label>
+                                                <input type="text" name="hafalan_terakhir" class="form-control rounded-3 bg-light border" placeholder="Contoh: Surah An-Naba' Ayat 1-20" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold small text-muted">Catatan Kualitas & Mutqin</label>
+                                                <textarea name="catatan" class="form-control rounded-3 bg-light border" rows="3" placeholder="Contoh: Sangat lancar, mutqin dengan tajwid yang baik"></textarea>
+                                            </div>
+                                            <div class="p-3 bg-light rounded-3 mb-2">
+                                                <div class="form-check form-switch mb-2">
+                                                    <input type="checkbox" name="ceklist_guru" class="form-check-input" id="checkGuruTahfidz{{ s.id }}" checked>
+                                                    <label class="form-check-label fw-semibold small" for="checkGuruTahfidz{{ s.id }}">Validasi Guru / Musyrif</label>
+                                                </div>
+                                                <div class="form-check form-switch">
+                                                    <input type="checkbox" name="ceklist_ortu" class="form-check-input" id="checkOrtuTahfidz{{ s.id }}">
+                                                    <label class="form-check-label fw-semibold small" for="checkOrtuTahfidz{{ s.id }}">Konfirmasi Setoran Orang Tua</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer border-0 p-4 pt-0">
+                                            <button type="button" class="btn btn-light rounded-3 fw-bold" data-bs-dismiss="modal">Batal</button>
+                                            <button type="submit" class="btn btn-success text-white rounded-3 fw-bold px-4">
+                                                <i class="bi bi-save me-1"></i> Simpan Tahfidz
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- MODAL RIWAYAT LENGKAP SISWA (CANGGIH & MODERN) -->
+                        <div class="modal fade" id="modalRiwayat{{ s.id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered modal-lg">
+                                <div class="modal-content border-0 shadow-lg">
+                                    <div class="modal-header border-0 pb-0 pt-4 px-4">
+                                        <div>
+                                            <h5 class="fw-bold text-dark mb-1">
+                                                <i class="bi bi-clock-history text-primary me-2"></i>Rekam Jejak Santri
+                                            </h5>
+                                            <p class="text-muted small mb-0">{{ s.nama }} (ID: {{ s.id }}) • Kelas {{ s.kelas }}</p>
+                                        </div>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body p-4">
+                                        <!-- Tabs Navigasi Riwayat -->
+                                        <ul class="nav nav-pills nav-fill bg-light p-1 rounded-4 mb-3" role="tablist">
+                                            <li class="nav-item">
+                                                <button class="nav-link active rounded-pill fw-bold small py-2" data-bs-toggle="pill" data-bs-target="#tabDisiplin{{ s.id }}">
+                                                    <i class="bi bi-shield-check me-1"></i> Poin Disiplin ({{ s.catatan|length if s.catatan else 0 }})
+                                                </button>
+                                            </li>
+                                            <li class="nav-item">
+                                                <button class="nav-link rounded-pill fw-bold small py-2" data-bs-toggle="pill" data-bs-target="#tabTahsin{{ s.id }}">
+                                                    <i class="bi bi-book me-1"></i> Tahsin ({{ s.tahsin|length if s.tahsin else 0 }})
+                                                </button>
+                                            </li>
+                                            <li class="nav-item">
+                                                <button class="nav-link rounded-pill fw-bold small py-2" data-bs-toggle="pill" data-bs-target="#tabTahfidz{{ s.id }}">
+                                                    <i class="bi bi-journal-check me-1"></i> Tahfidz ({{ s.tahfidz|length if s.tahfidz else 0 }})
+                                                </button>
+                                            </li>
+                                        </ul>
+
+                                        <div class="tab-content" style="max-height: 380px; overflow-y: auto;">
+                                            <!-- Tab Riwayat Disiplin -->
+                                            <div class="tab-pane fade show active p-2" id="tabDisiplin{{ s.id }}">
+                                                {% if s.catatan %}
+                                                    <div class="timeline ps-2">
+                                                        {% for c in s.catatan|reverse %}
+                                                        <div class="timeline-item">
+                                                            <div class="timeline-dot" style="border-color: {{ '#10b981' if c.kategori == 'prestasi' else '#ef4444' }};"></div>
+                                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                                <span class="badge {{ 'bg-success text-white' if c.kategori == 'prestasi' else 'bg-danger text-white' }} rounded-pill small">
+                                                                    {{ '+' if c.kategori == 'prestasi' else '-' }}{{ c.poin }} Poin
+                                                                </span>
+                                                                <small class="text-muted">{{ c.tanggal }}</small>
+                                                            </div>
+                                                            <div class="fw-semibold text-dark">{{ c.deskripsi }}</div>
+                                                            <small class="text-muted">Pencatat: {{ c.pencatat }}</small>
+                                                        </div>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% else %}
+                                                    <div class="text-center py-4 text-muted">
+                                                        <i class="bi bi-inbox fs-2 d-block mb-2 opacity-50"></i>
+                                                        <p class="small mb-0">Belum ada catatan poin disiplin.</p>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+
+                                            <!-- Tab Riwayat Tahsin -->
+                                            <div class="tab-pane fade p-2" id="tabTahsin{{ s.id }}">
+                                                {% if s.tahsin %}
+                                                    <div class="timeline ps-2">
+                                                        {% for t in s.tahsin|reverse %}
+                                                        <div class="timeline-item">
+                                                            <div class="timeline-dot" style="border-color: #0ea5e9;"></div>
+                                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                                <span class="badge bg-info text-white rounded-pill small">Halaman: {{ t.halaman_akhir }}</span>
+                                                                <small class="text-muted">{{ t.tanggal }}</small>
+                                                            </div>
+                                                            <p class="small text-dark mb-1">{{ t.catatan if t.catatan else 'Tidak ada catatan khusus.' }}</p>
+                                                            <div class="d-flex gap-2">
+                                                                {% if t.ceklist_guru %}
+                                                                    <span class="badge bg-success bg-opacity-10 text-success small"><i class="bi bi-check-circle me-1"></i>Paraf Guru</span>
+                                                                {% endif %}
+                                                                {% if t.ceklist_ortu %}
+                                                                    <span class="badge bg-primary bg-opacity-10 text-primary small"><i class="bi bi-check-circle me-1"></i>Paraf Ortu</span>
+                                                                {% endif %}
+                                                            </div>
+                                                        </div>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% else %}
+                                                    <div class="text-center py-4 text-muted">
+                                                        <i class="bi bi-inbox fs-2 d-block mb-2 opacity-50"></i>
+                                                        <p class="small mb-0">Belum ada riwayat setoran tahsin.</p>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+
+                                            <!-- Tab Riwayat Tahfidz -->
+                                            <div class="tab-pane fade p-2" id="tabTahfidz{{ s.id }}">
+                                                {% if s.tahfidz %}
+                                                    <div class="timeline ps-2">
+                                                        {% for h in s.tahfidz|reverse %}
+                                                        <div class="timeline-item">
+                                                            <div class="timeline-dot" style="border-color: #10b981;"></div>
+                                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                                <span class="badge bg-success text-white rounded-pill small">Hafalan: {{ h.hafalan_terakhir }}</span>
+                                                                <small class="text-muted">{{ h.tanggal }}</small>
+                                                            </div>
+                                                            <p class="small text-dark mb-1">{{ h.catatan if h.catatan else 'Mutqin dan lancar.' }}</p>
+                                                            <div class="d-flex gap-2">
+                                                                {% if h.ceklist_guru %}
+                                                                    <span class="badge bg-success bg-opacity-10 text-success small"><i class="bi bi-check-circle me-1"></i>Paraf Guru</span>
+                                                                {% endif %}
+                                                                {% if h.ceklist_ortu %}
+                                                                    <span class="badge bg-primary bg-opacity-10 text-primary small"><i class="bi bi-check-circle me-1"></i>Paraf Ortu</span>
+                                                                {% endif %}
+                                                            </div>
+                                                        </div>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% else %}
+                                                    <div class="text-center py-4 text-muted">
+                                                        <i class="bi bi-inbox fs-2 d-block mb-2 opacity-50"></i>
+                                                        <p class="small mb-0">Belum ada riwayat hafalan tahfidz.</p>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer border-0 p-4 pt-0">
+                                        <button type="button" class="btn btn-secondary w-100 rounded-3 fw-bold" data-bs-dismiss="modal">Tutup</button>
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Modal Tahfidz Perminggu -->
-                            <div class="modal fade" id="modalTahfidz{{ s.id }}" tabindex="-1">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <form action="/catat_tahfidz/{{ s.id }}" method="POST">
-                                            <div class="modal-header bg-success text-white">
-                                                <h5 class="modal-title">Input Tahfidz Perminggu - {{ s.nama }}</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <div class="mb-3">
-                                                    <label class="form-label">Tanggal Setor</label>
-                                                    <input type="date" name="tanggal" class="form-control" required>
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label class="form-label">Hafalan Terakhir (Ayat & Surah)</label>
-                                                    <input type="text" name="hafalan_terakhir" class="form-control" placeholder="Contoh: Surah An-Naba' Ayat 1-20" required>
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label class="form-label">Catatan Guru</label>
-                                                    <textarea name="catatan" class="form-control" rows="2" placeholder="Catatan mutqin / kelancaran hafalan..."></textarea>
-                                                </div>
-                                                <div class="form-check mb-2">
-                                                    <input type="checkbox" name="ceklist_guru" class="form-check-input" id="ctg{{ s.id }}" checked>
-                                                    <label class="form-check-label" for="ctg{{ s.id }}">Ceklist Guru / Musyrif</label>
-                                                </div>
-                                                <div class="form-check mb-2">
-                                                    <input type="checkbox" name="ceklist_ortu" class="form-check-input" id="cto{{ s.id }}">
-                                                    <label class="form-check-label" for="cto{{ s.id }}">Ceklist Orang Tua</label>
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="submit" class="btn btn-success">Simpan Tahfidz</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
+                        {% else %}
+                        <tr id="emptyRowState">
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox fs-1 d-block mb-3 opacity-50"></i>
+                                <h6 class="fw-bold">Belum Ada Data Siswa</h6>
+                                <p class="small mb-3">Silakan tambah murid bimbingan baru atau import dari file Excel.</p>
+                                <button class="btn btn-success btn-sm rounded-pill px-4 fw-bold" data-bs-toggle="modal" data-bs-target="#modalTambahSiswa">
+                                    <i class="bi bi-plus-circle me-1"></i> Tambah Murid
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
 
+            <!-- Pesan jika hasil pencarian kosong -->
+            <div id="noMatchAlert" class="text-center py-5 d-none">
+                <i class="bi bi-search fs-1 text-muted opacity-50 d-block mb-2"></i>
+                <h6 class="fw-bold text-dark">Data Santri Tidak Ditemukan</h6>
+                <p class="text-muted small mb-0">Coba gunakan kata kunci pencarian nama atau ID yang lain.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MODAL SCAN QR KARTU PELAJAR (ANIMASI INTERAKTIF) -->
+    <div class="modal fade" id="modalScanQR" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg text-center p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-qr-code-scan text-success me-2"></i> Pemindai Kartu Pelajar
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                
+                <p class="text-muted small mb-3">Arahkan barcode / QR Code kartu pelajar santri ke dalam kotak pemindai kamera.</p>
+                
+                <!-- Viewfinder Box dengan Laser Animation -->
+                <div class="qr-scanner-box mb-3">
+                    <div class="scanner-beam"></div>
+                    <div class="scanner-reticle tl"></div>
+                    <div class="scanner-reticle tr"></div>
+                    <div class="scanner-reticle bl"></div>
+                    <div class="scanner-reticle br"></div>
+                    <div class="d-flex flex-column align-items-center justify-content-center h-100 text-white-50">
+                        <i class="bi bi-camera-video fs-1 mb-2 opacity-50"></i>
+                        <span class="small" style="font-size: 0.75rem;">Kamera Siap Memindai...</span>
+                    </div>
+                </div>
+
+                <!-- Fitur Simulasi Scan Cepat untuk Demo/Uji Coba -->
+                <div class="bg-light p-3 rounded-4 mb-3 text-start">
+                    <label class="form-label fw-bold small text-muted mb-2">Simulasi Scan Instan:</label>
+                    <div class="input-group">
+                        <select id="simulasiSelectSiswa" class="form-select form-select-sm rounded-start-3">
+                            <option value="">-- Pilih Santri untuk Simulasi --</option>
+                            {% for s in siswa_list %}
+                                <option value="{{ s.id }}">{{ s.nama }} ({{ s.id }} - {{ s.kelas }})</option>
                             {% endfor %}
-                        </tbody>
-                    </table>
+                        </select>
+                        <button class="btn btn-success btn-sm fw-bold px-3" onclick="lakukanSimulasiScan()">
+                            <i class="bi bi-check2-circle me-1"></i> Scan
+                        </button>
+                    </div>
+                </div>
+
+                <div class="text-center">
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-4" data-bs-dismiss="modal">Tutup Pemindai</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal Import Excel -->
-    <div class="modal fade" id="modalImportExcel" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form action="/import_excel" method="POST" enctype="multipart/form-data">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Import Data Siswa dari Excel</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <!-- MODAL TAMBAH MURID BARU -->
+    <div class="modal fade" id="modalTambahSiswa" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <form action="/tambah_siswa" method="POST">
+                    <div class="modal-header bg-success text-white border-0 py-3" style="border-radius: 20px 20px 0 0;">
+                        <h5 class="modal-title fw-bold mb-0">
+                            <i class="bi bi-person-plus-fill me-2"></i> Tambah Murid Binaan Baru
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
-                    <div class="modal-body">
-                        <p class="small text-muted">Format kolom header Excel harus berisi: <strong>Nama</strong>, <strong>Kelas</strong>, dan <strong>Poin</strong>.</p>
-                        <input type="file" name="file_excel" class="form-control" accept=".xlsx, .xls" required>
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Nama Lengkap Murid</label>
+                            <input type="text" name="nama" class="form-control rounded-3 bg-light border" placeholder="Contoh: Muhammad Fatih" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Kelas / Rombel</label>
+                            <input type="text" name="kelas" class="form-control rounded-3 bg-light border" value="{{ session.get('kelas', '4A') }}" placeholder="Contoh: 4A" required>
+                        </div>
+                        <div class="p-3 bg-light rounded-3">
+                            <small class="text-muted d-block">
+                                <i class="bi bi-info-circle-fill text-success me-1"></i> Murid baru otomatis terdaftar dengan saldo awal <strong>100 Poin Disiplin</strong>.
+                            </small>
+                        </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-success">Upload & Import</button>
+                    <div class="modal-footer border-0 p-4 pt-0">
+                        <button type="button" class="btn btn-light rounded-3 fw-bold" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-success rounded-3 fw-bold px-4">
+                            <i class="bi bi-check-lg me-1"></i> Simpan Murid
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- MODAL IMPORT EXCEL -->
+    <div class="modal fade" id="modalImportExcel" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <form action="/import_excel" method="POST" enctype="multipart/form-data">
+                    <div class="modal-header bg-dark text-white border-0 py-3" style="border-radius: 20px 20px 0 0;">
+                        <h5 class="modal-title fw-bold mb-0">
+                            <i class="bi bi-file-earmark-excel me-2"></i> Import Data Santri dari Excel
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="alert alert-warning bg-warning bg-opacity-10 border-0 text-dark small mb-3">
+                            <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i> Pastikan file memiliki header kolom: <strong>Nama</strong>, <strong>Kelas</strong>, dan <strong>Poin</strong>.
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Pilih File Spreadsheet</label>
+                            <input type="file" name="file_excel" class="form-control bg-light rounded-3 border" accept=".xlsx, .xls" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 p-4 pt-0">
+                        <button type="button" class="btn btn-light rounded-3 fw-bold" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-dark rounded-3 fw-bold px-4">Upload & Proses</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Set otomatis tanggal hari ini pada semua input date modal
+        document.addEventListener("DOMContentLoaded", function () {
+            const today = new Date().toISOString().split('T')[0];
+            document.querySelectorAll('input[type="date"]').forEach(inp => {
+                if (!inp.value) inp.value = today;
+            });
+            updateLiveClock();
+            setInterval(updateLiveClock, 1000);
+            initChart();
+        });
+
+        // Realtime Clock Function
+        function updateLiveClock() {
+            const now = new Date();
+            const days = ['Ahad', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            
+            const dayName = days[now.getDay()];
+            const day = now.getDate();
+            const month = months[now.getMonth()];
+            const year = now.getFullYear();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+
+            const clockEl = document.getElementById('liveClock');
+            if (clockEl) {
+                clockEl.textContent = `${dayName}, ${day} ${month} ${year} • ${hours}:${minutes}:${seconds} WIB`;
+            }
+        }
+
+        // Live Search Real-time Tanpa Reload
+        function filterTabelRealtime() {
+            const query = document.getElementById('liveSearchInput').value.toLowerCase().trim();
+            const clearBtn = document.getElementById('clearSearchBtn');
+            clearBtn.classList.toggle('d-none', query === '');
+
+            const rows = document.querySelectorAll('.siswa-row');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const nama = row.getAttribute('data-nama') || '';
+                const id = (row.getAttribute('data-id') || '').toLowerCase();
+                const kelas = row.getAttribute('data-kelas') || '';
+
+                if (nama.includes(query) || id.includes(query) || kelas.includes(query)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            const noMatch = document.getElementById('noMatchAlert');
+            if (noMatch) {
+                noMatch.classList.toggle('d-none', visibleCount > 0 || rows.length === 0);
+            }
+        }
+
+        function clearLiveSearch() {
+            const input = document.getElementById('liveSearchInput');
+            input.value = '';
+            filterTabelRealtime();
+            input.focus();
+        }
+
+        // Filter Kategori (Semua, Teladan, Standar, Perhatian)
+        function setFilterStatus(status, btnElement) {
+            document.querySelectorAll('.filter-pill').forEach(btn => btn.classList.remove('active'));
+            if (btnElement) btnElement.classList.add('active');
+
+            const rows = document.querySelectorAll('.siswa-row');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const rowStatus = row.getAttribute('data-status');
+                if (status === 'all' || rowStatus === status) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            const noMatch = document.getElementById('noMatchAlert');
+            if (noMatch) {
+                noMatch.classList.toggle('d-none', visibleCount > 0 || rows.length === 0);
+            }
+        }
+
+        // Konfirmasi SweetAlert2 sebelum quick poin
+        function confirmPoin(event, element, nama, aktivitas, poin) {
+            event.preventDefault();
+            const url = element.getAttribute('href');
+            const isMinus = poin.includes('-');
+
+            Swal.fire({
+                title: `${isMinus ? 'Kurangi' : 'Tambah'} Poin?`,
+                html: `Konfirmasi pencatatan <strong>${aktivitas}</strong> (<span class="${isMinus ? 'text-danger' : 'text-success'} fw-bold">${poin} poin</span>) untuk santri <strong>${nama}</strong>.`,
+                icon: isMinus ? 'warning' : 'question',
+                showCancelButton: true,
+                confirmButtonColor: isMinus ? '#ef4444' : '#059669',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Ya, Simpan!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = url;
+                }
+            });
+        }
+
+        // WhatsApp Share Generator Otomatis
+        function kirimWA(nama, kelas, poin, hafalan) {
+            const poinNum = parseInt(poin) || 0;
+            let predikat = poinNum >= 95 ? "Sangat Baik & Teladan" : (poinNum >= 90 ? "Baik" : "Perlu Bimbingan Ekstra");
+            
+            let pesan = `*LAPORAN PERKEMBANGAN SANTRI SDIT*\n` +
+                        `---------------------------------------\n` +
+                        `Assalamu'alaikum Warahmatullahi Wabarakatuh,\n\n` +
+                        `Yth. Bapak/Ibu Wali Santri dari ananda:\n` +
+                        `*Nama:* ${nama}\n` +
+                        `*Kelas:* ${kelas}\n\n` +
+                        `*1. Poin Kedisiplinan Karakter:* ${poin} Poin (${predikat})\n` +
+                        `*2. Hafalan Qur'an Terakhir:* ${hafalan}\n\n` +
+                        `Mohon senantiasa didampingi dan dimotivasi dalam menjaga sholat 5 waktu serta muroja'ah hafalan di rumah.\n\n` +
+                        `Jazakumullah Khairan Katsiran.\n` +
+                        `_Wassalamu'alaikum Warahmatullahi Wabarakatuh._\n` +
+                        `*(Musyrif/Wali Kelas SDIT)*`;
+
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(pesan)}`, '_blank');
+        }
+
+        // Simulasi Scan QR Pelajar
+        function lakukanSimulasiScan() {
+            const select = document.getElementById('simulasiSelectSiswa');
+            const id = select.value;
+            if (!id) {
+                Swal.fire({ icon: 'info', title: 'Pilih Santri', text: 'Silakan pilih santri terlebih dahulu untuk simulasi!' });
+                return;
+            }
+
+            // Tutup modal QR
+            const modalEl = document.getElementById('modalScanQR');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+
+            // Highlight baris santri
+            const targetRow = document.querySelector(`.siswa-row[data-id="${id}"]`);
+            if (targetRow) {
+                targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                targetRow.style.transition = 'background-color 0.5s ease';
+                targetRow.style.backgroundColor = '#dcfce7';
+
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: `Kartu Terdeteksi: ID ${id}`,
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+
+                setTimeout(() => {
+                    targetRow.style.backgroundColor = '';
+                }, 3000);
+            }
+        }
+
+        // ApexCharts Interaktif (Mode Tren vs Distribusi Poin Santri Real-time)
+        let chartInstance = null;
+
+        // Ambil data santri dari konteks Jinja
+        const rawSiswaNames = [
+            {% for s in siswa_list %}
+                "{{ s.nama }}",
+            {% endfor %}
+        ];
+        const rawSiswaPoints = [
+            {% for s in siswa_list %}
+                {{ s.poin }},
+            {% endfor %}
+        ];
+
+        function initChart() {
+            renderTrendChart();
+        }
+
+        function renderTrendChart() {
+            if (chartInstance) chartInstance.destroy();
+
+            const options = {
+                series: [
+                    { name: 'Rata-rata Disiplin', data: [94, 96, 95.5, {{ avg_poin }}] },
+                    { name: 'Akumulasi Tahfidz', data: [8, 14, 20, {{ [ns.total_tahfidz * 4, 25]|max }}] }
+                ],
+                chart: {
+                    type: 'area',
+                    height: 270,
+                    toolbar: { show: false },
+                    fontFamily: 'Plus Jakarta Sans, sans-serif'
+                },
+                colors: ['#059669', '#3b82f6'],
+                dataLabels: { enabled: false },
+                stroke: { curve: 'smooth', width: 3 },
+                fill: {
+                    type: 'gradient',
+                    gradient: {
+                        shadeIntensity: 1,
+                        opacityFrom: 0.35,
+                        opacityTo: 0.05,
+                        stops: [0, 90, 100]
+                    }
+                },
+                xaxis: {
+                    categories: ['Pekan 1', 'Pekan 2', 'Pekan 3', 'Pekan 4 (Aktif)'],
+                    labels: { style: { colors: '#64748b', fontSize: '12px' } }
+                },
+                yaxis: {
+                    labels: { style: { colors: '#64748b', fontSize: '12px' } }
+                },
+                tooltip: {
+                    theme: 'light',
+                    x: { show: true }
+                },
+                grid: {
+                    borderColor: '#f1f5f9',
+                    strokeDashArray: 4
+                },
+                legend: {
+                    position: 'top',
+                    horizontalAlign: 'right'
+                }
+            };
+
+            chartInstance = new ApexCharts(document.querySelector("#chartAnalytics"), options);
+            chartInstance.render();
+        }
+
+        function renderDistribusiChart() {
+            if (chartInstance) chartInstance.destroy();
+
+            const names = rawSiswaNames.length > 0 ? rawSiswaNames : ['Budi Santoso'];
+            const points = rawSiswaPoints.length > 0 ? rawSiswaPoints : [100];
+
+            const options = {
+                series: [{
+                    name: 'Skor Poin',
+                    data: points
+                }],
+                chart: {
+                    type: 'bar',
+                    height: 270,
+                    toolbar: { show: false },
+                    fontFamily: 'Plus Jakarta Sans, sans-serif'
+                },
+                colors: ['#10b981'],
+                plotOptions: {
+                    bar: {
+                        borderRadius: 8,
+                        columnWidth: '40%',
+                        distributed: false
+                    }
+                },
+                dataLabels: { enabled: true, style: { fontSize: '11px', colors: ['#fff'] } },
+                xaxis: {
+                    categories: names,
+                    labels: { style: { colors: '#64748b', fontSize: '12px' } }
+                },
+                yaxis: {
+                    max: 120,
+                    labels: { style: { colors: '#64748b', fontSize: '12px' } }
+                },
+                tooltip: { theme: 'light' },
+                grid: { borderColor: '#f1f5f9', strokeDashArray: 4 }
+            };
+
+            chartInstance = new ApexCharts(document.querySelector("#chartAnalytics"), options);
+            chartInstance.render();
+        }
+
+        function switchChartMode(mode) {
+            const btnTren = document.getElementById('btnChartTren');
+            const btnDist = document.getElementById('btnChartDistribusi');
+
+            if (mode === 'trend') {
+                btnTren.classList.add('active');
+                btnDist.classList.remove('active');
+                renderTrendChart();
+            } else {
+                btnDist.classList.add('active');
+                btnTren.classList.remove('active');
+                renderDistribusiChart();
+            }
+        }
+    </script>
 </body>
 </html>
