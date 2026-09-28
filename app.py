@@ -1,4 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file, Response
+from flask_sqlalchemy import SQLAlchemy
+from flask.json.provider import DefaultJSONProvider
 import json
 import os
 import io
@@ -9,194 +11,615 @@ import pandas as pd
 app = Flask(__name__)
 app.secret_key = 'sdit_pendisiplinan_hafalan_secret_key'
 
+# Konfigurasi Database SQLite di folder instance/pkm_sdit.db
+os.makedirs(app.instance_path, exist_ok=True)
+db_path = os.path.join(app.instance_path, 'pkm_sdit.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_path}"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Provider JSON Khusus agar Model SQLAlchemy Otomatis Ter-serialize saat | tojson di Jinja2
+class CustomJSONProvider(DefaultJSONProvider):
+    def default(self, obj):
+        if hasattr(obj, 'to_dict') and callable(obj.to_dict):
+            return obj.to_dict()
+        return super().default(obj)
+
+app.json = CustomJSONProvider(app)
+db = SQLAlchemy(app)
+
 DATA_SISWA_PATH = 'data/siswa.json'
 DATA_GURU_PATH = 'data/guru.json'
 
-def load_data(filename):
-    if not os.path.exists(filename):
-        return {} if 'guru' in filename else []
-    with open(filename, 'r', encoding='utf-8') as f:
-        try:
-            return json.load(f)
-        except json.JSONDecodeError:
-            return {} if 'guru' in filename else []
+# ========================================================
+# MODEL DATABASE SQLALCHEMY (SQLITE)
+# ========================================================
 
-def save_data(filename, data):
-    os.makedirs(os.path.dirname(filename), exist_ok=True)
-    with open(filename, 'w', encoding='utf-8') as f:
-        json.dump(data, f, indent=4)
+class User(db.Model):
+    __tablename__ = 'user'
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(255), nullable=False)
+    role = db.Column(db.String(20), nullable=False)  # 'admin', 'guru', 'ortu'
+    nama = db.Column(db.String(150), nullable=True)
+    kelas = db.Column(db.String(50), nullable=True)
+    status = db.Column(db.String(20), default='Aktif')  # 'Aktif' / 'Tidak Aktif'
 
-def normalize_siswa(s):
-    """Pastikan setiap record siswa punya semua key yang dibutuhkan template
-    (data lama / hasil import excel mungkin belum punya 'tahsin'/'tahfidz'/'catatan'),
-    supaya {% for %} di template tidak pernah error karena key hilang."""
-    if not isinstance(s, dict):
-        return s
-    s.setdefault('id', '')
-    s.setdefault('nama', '')
-    s.setdefault('kelas', '')
-    s.setdefault('poin', 100)
-    s.setdefault('catatan', [])
-    s.setdefault('tahsin', [])
-    s.setdefault('tahfidz', [])
-    if not isinstance(s.get('catatan'), list):
-        s['catatan'] = []
-    if not isinstance(s.get('tahsin'), list):
-        s['tahsin'] = []
-    if not isinstance(s.get('tahfidz'), list):
-        s['tahfidz'] = []
-    return s
+    siswa_binaan = db.relationship('Siswa', backref='ortu', lazy=True)
 
-def load_siswa():
-    """Selalu gunakan fungsi ini (bukan load_data langsung) untuk membaca data siswa,
-    supaya data lama otomatis dilengkapi dan tidak menyebabkan error di halaman cetak/export."""
-    data = load_data(DATA_SISWA_PATH)
-    if not isinstance(data, list):
-        return []
-    return [normalize_siswa(s) for s in data if isinstance(s, dict)]
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "username": self.username,
+            "role": self.role,
+            "nama": self.nama or self.username,
+            "kelas": self.kelas or "-",
+            "status": self.status or "Aktif"
+        }
+
+    def __getitem__(self, key):
+        return getattr(self, key)
+
+
+class Siswa(db.Model):
+    __tablename__ = 'siswa'
+    id = db.Column(db.String(50), primary_key=True)
+    nama = db.Column(db.String(150), nullable=False)
+    kelas = db.Column(db.String(50), nullable=False)
+    poin = db.Column(db.Integer, default=0)  # Poin awal nol (0)
+    user_id_ortu = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+
+    catatan = db.relationship('RecordsPoin', backref='siswa', lazy=True, cascade="all, delete-orphan", order_by="RecordsPoin.id.asc()")
+    tahsin = db.relationship('RecordsTahsin', backref='siswa', lazy=True, cascade="all, delete-orphan", order_by="RecordsTahsin.id.asc()")
+    tahfidz = db.relationship('RecordsTahfidz', backref='siswa', lazy=True, cascade="all, delete-orphan", order_by="RecordsTahfidz.id.asc()")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "nama": self.nama,
+            "kelas": self.kelas,
+            "poin": self.poin,
+            "catatan": [c.to_dict() for c in self.catatan],
+            "tahsin": [t.to_dict() for t in self.tahsin],
+            "tahfidz": [f.to_dict() for f in self.tahfidz]
+        }
+
+    def __getitem__(self, key):
+        if key == 'catatan':
+            return [c.to_dict() for c in self.catatan]
+        if key == 'tahsin':
+            return [t.to_dict() for t in self.tahsin]
+        if key == 'tahfidz':
+            return [f.to_dict() for f in self.tahfidz]
+        return getattr(self, key)
+
+
+class RecordsPoin(db.Model):
+    __tablename__ = 'records_poin'
+    id = db.Column(db.Integer, primary_key=True)
+    siswa_id = db.Column(db.String(50), db.ForeignKey('siswa.id'), nullable=False)
+    tanggal = db.Column(db.String(50), nullable=False)
+    kategori = db.Column(db.String(50), nullable=False)  # 'prestasi' / 'pelanggaran'
+    deskripsi = db.Column(db.String(255), nullable=False)
+    poin = db.Column(db.Integer, nullable=False)
+    pencatat = db.Column(db.String(100), nullable=True)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "tanggal": self.tanggal,
+            "kategori": self.kategori,
+            "deskripsi": self.deskripsi,
+            "poin": self.poin,
+            "pencatat": self.pencatat or ""
+        }
+
+    def __getitem__(self, key):
+        return getattr(self, key)
+
+
+class RecordsTahsin(db.Model):
+    __tablename__ = 'records_tahsin'
+    id = db.Column(db.Integer, primary_key=True)
+    siswa_id = db.Column(db.String(50), db.ForeignKey('siswa.id'), nullable=False)
+    tanggal = db.Column(db.String(50), nullable=False)
+    halaman_akhir = db.Column(db.String(150), nullable=False)
+    catatan = db.Column(db.Text, nullable=True)
+    ceklist_guru = db.Column(db.Boolean, default=True)
+    ceklist_ortu = db.Column(db.Boolean, default=False)
+    catatan_ortu = db.Column(db.Text, nullable=True)
+    penilai = db.Column(db.String(100), nullable=True)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "tanggal": self.tanggal,
+            "halaman_akhir": self.halaman_akhir,
+            "catatan": self.catatan or "",
+            "ceklist_guru": bool(self.ceklist_guru),
+            "ceklist_ortu": bool(self.ceklist_ortu),
+            "catatan_ortu": self.catatan_ortu or "",
+            "penilai": self.penilai or ""
+        }
+
+    def __getitem__(self, key):
+        return getattr(self, key)
+
+
+class RecordsTahfidz(db.Model):
+    __tablename__ = 'records_tahfidz'
+    id = db.Column(db.Integer, primary_key=True)
+    siswa_id = db.Column(db.String(50), db.ForeignKey('siswa.id'), nullable=False)
+    tanggal = db.Column(db.String(50), nullable=False)
+    hafalan_terakhir = db.Column(db.String(150), nullable=False)
+    catatan = db.Column(db.Text, nullable=True)
+    ceklist_guru = db.Column(db.Boolean, default=True)
+    ceklist_ortu = db.Column(db.Boolean, default=False)
+    catatan_ortu = db.Column(db.Text, nullable=True)
+    penilai = db.Column(db.String(100), nullable=True)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "tanggal": self.tanggal,
+            "hafalan_terakhir": self.hafalan_terakhir,
+            "catatan": self.catatan or "",
+            "ceklist_guru": bool(self.ceklist_guru),
+            "ceklist_ortu": bool(self.ceklist_ortu),
+            "catatan_ortu": self.catatan_ortu or "",
+            "penilai": self.penilai or ""
+        }
+
+    def __getitem__(self, key):
+        return getattr(self, key)
+
+
+# ========================================================
+# AUTO-SEEDER & MIGRASI DATABASE SQLITE
+# ========================================================
+def init_db_and_seed():
+    db.create_all()
+
+    # Auto Migration untuk kolom baru tanpa perlu hapus DB
+    import sqlite3 as _sqlite3
+    try:
+        conn = _sqlite3.connect(db_path)
+        cur = conn.cursor()
+        
+        # Migrasi catatan_ortu
+        for tbl, col in [('records_tahsin', 'catatan_ortu'), ('records_tahfidz', 'catatan_ortu')]:
+            cur.execute(f"PRAGMA table_info({tbl})")
+            cols = [r[1] for r in cur.fetchall()]
+            if col not in cols:
+                cur.execute(f"ALTER TABLE {tbl} ADD COLUMN {col} TEXT")
+
+        # Migrasi status keaktifan user/guru
+        cur.execute("PRAGMA table_info(user)")
+        cols_user = [r[1] for r in cur.fetchall()]
+        if 'status' not in cols_user:
+            cur.execute("ALTER TABLE user ADD COLUMN status TEXT DEFAULT 'Aktif'")
+
+        conn.commit()
+        conn.close()
+    except Exception as _e:
+        print("Info migrasi database:", _e)
+
+    # 1. Migrasi Data Guru / User jika tabel User masih kosong
+    if not User.query.first():
+        guru_data = {}
+        if os.path.exists(DATA_GURU_PATH):
+            try:
+                with open(DATA_GURU_PATH, 'r', encoding='utf-8') as f:
+                    guru_data = json.load(f)
+            except Exception as e:
+                print("Info: Gagal load guru.json:", e)
+
+        if guru_data and isinstance(guru_data, dict):
+            for uname, udata in guru_data.items():
+                if not User.query.filter_by(username=uname).first():
+                    new_user = User(
+                        username=uname,
+                        password=str(udata.get('password', '123')),
+                        role=udata.get('role', 'guru'),
+                        nama=udata.get('nama', uname),
+                        kelas=udata.get('kelas', '-'),
+                        status='Aktif'
+                    )
+                    db.session.add(new_user)
+        else:
+            admin_user = User(
+                username='admin',
+                password='admin',
+                role='admin',
+                nama='Administrator SDIT',
+                kelas='-',
+                status='Aktif'
+            )
+            db.session.add(admin_user)
+
+        db.session.commit()
+
+    # 2. Migrasi Data Siswa jika tabel Siswa masih kosong
+    if not Siswa.query.first():
+        siswa_data = []
+        if os.path.exists(DATA_SISWA_PATH):
+            try:
+                with open(DATA_SISWA_PATH, 'r', encoding='utf-8') as f:
+                    siswa_data = json.load(f)
+            except Exception as e:
+                print("Info: Gagal load siswa.json:", e)
+
+        if siswa_data and isinstance(siswa_data, list):
+            for s in siswa_data:
+                if not isinstance(s, dict) or not s.get('id'):
+                    continue
+
+                nama_siswa = s.get('nama', '').strip()
+                kelas_siswa = s.get('kelas', '4A')
+
+                ortu_user = User.query.filter_by(username=nama_siswa, role='ortu').first()
+                if not ortu_user and nama_siswa:
+                    ortu_user = User(
+                        username=nama_siswa,
+                        password='1234',
+                        role='ortu',
+                        nama=f"Wali {nama_siswa}",
+                        kelas=kelas_siswa,
+                        status='Aktif'
+                    )
+                    db.session.add(ortu_user)
+                    db.session.flush()
+
+                new_siswa = Siswa(
+                    id=s.get('id'),
+                    nama=nama_siswa,
+                    kelas=kelas_siswa,
+                    poin=int(s.get('poin', 0)),
+                    user_id_ortu=ortu_user.id if ortu_user else None
+                )
+                db.session.add(new_siswa)
+
+            db.session.commit()
+
+with app.app_context():
+    init_db_and_seed()
+
+
+# ========================================================
+# ROUTES & LOGIKA APLIKASI
+# ========================================================
 
 @app.route('/')
 def index():
+    if session.get('role') == 'admin':
+        return redirect(url_for('dashboard_admin'))
+    elif session.get('role') == 'guru':
+        return redirect(url_for('dashboard_guru'))
+    elif session.get('role') == 'ortu':
+        return redirect(url_for('dashboard_ortu'))
     return redirect(url_for('login'))
 
+
+# LOGIN MULTI-ROLE
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        role = request.form.get('role')
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '').strip()
 
-        gurus = load_data(DATA_GURU_PATH)
+        user = User.query.filter(db.func.lower(User.username) == username.lower()).first()
 
-        if username in gurus:
-            user_data = gurus[username]
-            if user_data.get('password') == password and user_data.get('role') == role:
-                session['user'] = user_data.get('nama', username)
-                session['role'] = role
-                if role == 'admin':
-                    return redirect(url_for('dashboard_admin'))
-                else:
-                    return redirect(url_for('dashboard_guru'))
+        if user and user.password == password:
+            if user.status == 'Tidak Aktif':
+                flash('Akun Anda telah dinonaktifkan oleh Administrator!', 'danger')
+                return render_template('login.html')
 
-        flash('Username, Password, atau Akses tidak valid!', 'danger')
+            session['user_id'] = user.id
+            session['user'] = user.nama or user.username
+            session['username'] = user.username
+            session['role'] = user.role
+            session['kelas'] = user.kelas or '4A'
+
+            if user.role == 'admin':
+                return redirect(url_for('dashboard_admin'))
+            elif user.role == 'guru':
+                return redirect(url_for('dashboard_guru'))
+            elif user.role == 'ortu':
+                siswa = Siswa.query.filter(
+                    (Siswa.user_id_ortu == user.id) | 
+                    (db.func.lower(Siswa.nama) == username.lower())
+                ).first()
+                if siswa:
+                    session['siswa_id'] = siswa.id
+                    session['kelas'] = siswa.kelas
+                return redirect(url_for('dashboard_ortu'))
+
+        # Login Ortu via Nama Siswa & Default Password '1234'
+        siswa = Siswa.query.filter(db.func.lower(Siswa.nama) == username.lower()).first()
+        if siswa and password == '1234':
+            ortu = User.query.filter_by(username=siswa.nama, role='ortu').first()
+            if not ortu:
+                ortu = User(
+                    username=siswa.nama,
+                    password='1234',
+                    role='ortu',
+                    nama=f"Wali {siswa.nama}",
+                    kelas=siswa.kelas,
+                    status='Aktif'
+                )
+                db.session.add(ortu)
+                db.session.flush()
+                siswa.user_id_ortu = ortu.id
+                db.session.commit()
+
+            session['user_id'] = ortu.id
+            session['user'] = ortu.nama
+            session['username'] = ortu.username
+            session['role'] = 'ortu'
+            session['kelas'] = siswa.kelas
+            session['siswa_id'] = siswa.id
+            return redirect(url_for('dashboard_ortu'))
+
+        flash('Username atau Password salah!', 'danger')
     return render_template('login.html')
+
 
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('login'))
 
+
+# DASHBOARD ADMINISTRATOR
 @app.route('/dashboard_admin')
 def dashboard_admin():
     if session.get('role') != 'admin':
         return redirect(url_for('login'))
 
-    siswa_list = load_siswa()
-    guru_dict = load_data(DATA_GURU_PATH)
-    q = request.args.get('q', '').lower()
-    if q and isinstance(siswa_list, list):
-        siswa_list = [s for s in siswa_list if isinstance(s, dict) and (q in s.get('nama', '').lower() or q in s.get('id', '').lower() or q in s.get('kelas', '').lower())]
+    guru_list = User.query.filter_by(role='guru').all()
+    return render_template('dashboard_admin.html', guru_list=guru_list)
 
-    return render_template('dashboard_admin.html', siswa_list=siswa_list, guru_dict=guru_dict)
 
+# ROUTE KELOLA GURU (ADMIN)
+@app.route('/admin/tambah_guru', methods=['POST'])
+def admin_tambah_guru():
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+
+    nama = request.form.get('nama', '').strip()
+    username = request.form.get('username', '').strip()
+    password = request.form.get('password', '').strip()
+    kelas = request.form.get('kelas', '-').strip()
+    status = request.form.get('status', 'Aktif')
+
+    if User.query.filter_by(username=username).first():
+        flash(f'Username "{username}" sudah digunakan guru lain!', 'danger')
+    else:
+        new_guru = User(
+            nama=nama,
+            username=username,
+            password=password,
+            role='guru',
+            kelas=kelas,
+            status=status
+        )
+        db.session.add(new_guru)
+        db.session.commit()
+        flash(f'Guru {nama} berhasil ditambahkan!', 'success')
+
+    return redirect(url_for('dashboard_admin'))
+
+
+@app.route('/admin/edit_guru/<int:guru_id>', methods=['POST'])
+def admin_edit_guru(guru_id):
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+
+    guru = User.query.get_or_404(guru_id)
+    guru.nama = request.form.get('nama', '').strip()
+    guru.username = request.form.get('username', '').strip()
+    guru.kelas = request.form.get('kelas', '-').strip()
+    guru.status = request.form.get('status', 'Aktif')
+
+    password_baru = request.form.get('password', '').strip()
+    if password_baru:
+        guru.password = password_baru
+
+    db.session.commit()
+    flash(f'Data guru {guru.nama} berhasil diperbarui!', 'success')
+    return redirect(url_for('dashboard_admin'))
+
+
+@app.route('/admin/hapus_guru/<int:guru_id>')
+def admin_hapus_guru(guru_id):
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+
+    guru = User.query.get_or_404(guru_id)
+    nama = guru.nama
+    db.session.delete(guru)
+    db.session.commit()
+    flash(f'Akun guru {nama} berhasil dihapus!', 'success')
+    return redirect(url_for('dashboard_admin'))
+
+
+@app.route('/admin/import_guru', methods=['POST'])
+def admin_import_guru():
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+
+    file = request.files.get('file_excel_guru')
+    if file and file.filename.endswith(('.xlsx', '.xls')):
+        try:
+            df = pd.read_excel(file)
+            imported_count = 0
+            for _, row in df.iterrows():
+                nama = str(row.get('Nama Lengkap', row.get('Nama', ''))).strip()
+                username = str(row.get('Username', '')).strip()
+                password = str(row.get('Password', '123456')).strip()
+                kelas = str(row.get('Kelas', '-')).strip()
+
+                if nama and username and not User.query.filter_by(username=username).first():
+                    new_guru = User(
+                        nama=nama,
+                        username=username,
+                        password=password,
+                        role='guru',
+                        kelas=kelas,
+                        status='Aktif'
+                    )
+                    db.session.add(new_guru)
+                    imported_count += 1
+
+            db.session.commit()
+            flash(f'Berhasil mengimpor {imported_count} data guru!', 'success')
+        except Exception as e:
+            flash(f'Gagal mengimpor file Excel: {str(e)}', 'danger')
+    else:
+        flash('Format file harus berupa Excel (.xlsx / .xls)!', 'danger')
+
+    return redirect(url_for('dashboard_admin'))
+
+
+# DASHBOARD GURU
 @app.route('/dashboard_guru')
 def dashboard_guru():
     if session.get('role') != 'guru':
         return redirect(url_for('login'))
 
-    siswa_list = load_siswa()
-    q = request.args.get('q', '').lower()
-    if q and isinstance(siswa_list, list):
-        siswa_list = [s for s in siswa_list if isinstance(s, dict) and (q in s.get('nama', '').lower() or q in s.get('id', '').lower() or q in s.get('kelas', '').lower())]
+    q = request.args.get('q', '').strip().lower()
+    query = Siswa.query
+    if q:
+        query = query.filter(
+            (db.func.lower(Siswa.nama).contains(q)) |
+            (db.func.lower(Siswa.id).contains(q)) |
+            (db.func.lower(Siswa.kelas).contains(q))
+        )
+    siswa_list = query.all()
+    return render_template('dashboard_guru.html', siswa_list=siswa_list, now_date=datetime.now().strftime("%Y-%m-%d"))
 
-    return render_template('dashboard_guru.html', siswa_list=siswa_list)
 
-# FITUR TOMBOL KLIK POIN CEPAT (INSTAN)
-@app.route('/quick_poin/<id_siswa>/<kategori>/<int:poin_val>')
-def quick_poin(id_siswa, kategori, poin_val):
-    if not session.get('role'):
+# DASHBOARD ORANG TUA
+@app.route('/dashboard_ortu')
+def dashboard_ortu():
+    if session.get('role') != 'ortu':
         return redirect(url_for('login'))
 
-    siswa_list = load_siswa()
-    deskripsi_map = {
-        'sholat': 'Melaksanakan Sholat Tepat Waktu',
-        'pakaian': 'Pakaian Rapi & Bersih',
-        'terlambat': 'Terlambat Masuk Sekolah',
-        'atribut': 'Atribut Seragam Tidak Lengkap'
-    }
+    siswa_id = session.get('siswa_id')
+    siswa = None
+    if siswa_id:
+        siswa = Siswa.query.get(siswa_id)
+    if not siswa and session.get('user_id'):
+        siswa = Siswa.query.filter_by(user_id_ortu=session.get('user_id')).first()
 
-    if isinstance(siswa_list, list):
-        for s in siswa_list:
-            if isinstance(s, dict) and s.get('id') == id_siswa:
-                if kategori in ['terlambat', 'atribut']:
-                    s['poin'] = s.get('poin', 100) - poin_val
-                    kat_title = 'pelanggaran'
-                else:
-                    s['poin'] = s.get('poin', 100) + poin_val
-                    kat_title = 'prestasi'
+    if not siswa:
+        flash('Data santri binaan tidak ditemukan!', 'warning')
+        return redirect(url_for('logout'))
 
-                s.setdefault('catatan', []).append({
-                    "tanggal": datetime.now().strftime("%Y-%m-%d %H:%M"),
-                    "kategori": kat_title,
-                    "deskripsi": deskripsi_map.get(kategori, 'Poin Otomatis'),
-                    "poin": poin_val,
-                    "pencatat": session.get('user')
-                })
-                break
+    return render_template('dashboard_ortu.html', siswa=siswa)
 
-    save_data(DATA_SISWA_PATH, siswa_list)
-    flash('Poin berhasil diperbarui!', 'success')
+
+# TAMBAH SISWA BARU (POIN AWAL 0)
+@app.route('/tambah_siswa', methods=['POST'])
+def tambah_siswa():
+    if session.get('role') not in ('admin', 'guru'):
+        return redirect(url_for('login'))
+
+    nama = request.form.get('nama', '').strip()
+    kelas = request.form.get('kelas', '').strip()
+    custom_id = request.form.get('nisn', '').strip()
+
+    if not custom_id:
+        count = Siswa.query.count()
+        custom_id = f"S{count + 1:03d}"
+        idx = count + 1
+        while Siswa.query.get(custom_id):
+            idx += 1
+            custom_id = f"S{idx:03d}"
+
+    ortu = User.query.filter_by(username=nama, role='ortu').first()
+    if not ortu:
+        ortu = User(
+            username=nama,
+            password='1234',
+            role='ortu',
+            nama=f"Wali {nama}",
+            kelas=kelas,
+            status='Aktif'
+        )
+        db.session.add(ortu)
+        db.session.flush()
+
+    new_siswa = Siswa(
+        id=custom_id,
+        nama=nama,
+        kelas=kelas,
+        poin=0,  # Poin awal nol (0)
+        user_id_ortu=ortu.id
+    )
+    db.session.add(new_siswa)
+    db.session.commit()
+
+    flash('Data santri berhasil ditambahkan dengan poin awal 0!', 'success')
     return redirect(request.referrer or url_for('dashboard_guru'))
 
-# INPUT TAHSIN PERMINGGU
+
+# INPUT TAHSIN
 @app.route('/catat_tahsin/<id_siswa>', methods=['POST'])
 def catat_tahsin(id_siswa):
     if not session.get('role'):
         return redirect(url_for('login'))
 
-    siswa_list = load_siswa()
-    if isinstance(siswa_list, list):
-        for s in siswa_list:
-            if isinstance(s, dict) and s.get('id') == id_siswa:
-                s.setdefault('tahsin', []).append({
-                    "tanggal": request.form.get('tanggal'),
-                    "halaman_akhir": request.form.get('halaman_akhir'),
-                    "catatan": request.form.get('catatan'),
-                    "ceklist_guru": 'ceklist_guru' in request.form,
-                    "ceklist_ortu": 'ceklist_ortu' in request.form,
-                    "penilai": session.get('user')
-                })
-                break
+    s = Siswa.query.get_or_404(id_siswa)
+    juz_pilihan = request.form.get('juz', '')
+    surat_ayat = request.form.get('halaman_akhir', '-')
+    gabungan_halaman = f"{juz_pilihan} - {surat_ayat}" if juz_pilihan else surat_ayat
 
-    save_data(DATA_SISWA_PATH, siswa_list)
-    flash('Nilai Tahsin Mingguan berhasil disimpan!', 'success')
+    poin_bonus = int(request.form.get('poin_bonus', 10))
+    s.poin = s.poin + poin_bonus
+
+    rec = RecordsTahsin(
+        siswa_id=s.id,
+        tanggal=request.form.get('tanggal') or datetime.now().strftime("%Y-%m-%d"),
+        halaman_akhir=gabungan_halaman,
+        catatan=request.form.get('catatan', ''),
+        penilai=session.get('user', 'Musyrif')
+    )
+    db.session.add(rec)
+    db.session.commit()
+
+    flash(f'Setoran Tahsin disimpan & mendapat +{poin_bonus} poin!', 'success')
     return redirect(request.referrer or url_for('dashboard_guru'))
 
-# INPUT TAHFIDZ PERMINGGU
+
+# INPUT TAHFIDZ
 @app.route('/catat_tahfidz/<id_siswa>', methods=['POST'])
 def catat_tahfidz(id_siswa):
     if not session.get('role'):
         return redirect(url_for('login'))
 
-    siswa_list = load_siswa()
-    if isinstance(siswa_list, list):
-        for s in siswa_list:
-            if isinstance(s, dict) and s.get('id') == id_siswa:
-                s.setdefault('tahfidz', []).append({
-                    "tanggal": request.form.get('tanggal'),
-                    "hafalan_terakhir": request.form.get('hafalan_terakhir'),
-                    "catatan": request.form.get('catatan'),
-                    "ceklist_guru": 'ceklist_guru' in request.form,
-                    "ceklist_ortu": 'ceklist_ortu' in request.form,
-                    "penilai": session.get('user')
-                })
-                break
+    s = Siswa.query.get_or_404(id_siswa)
+    juz_pilihan = request.form.get('juz', '')
+    surat_ayat = request.form.get('hafalan_terakhir', '-')
+    gabungan_hafalan = f"{juz_pilihan} - {surat_ayat}" if juz_pilihan else surat_ayat
 
-    save_data(DATA_SISWA_PATH, siswa_list)
-    flash('Nilai Tahfidz Mingguan berhasil disimpan!', 'success')
+    poin_bonus = int(request.form.get('poin_bonus', 10))
+    s.poin = s.poin + poin_bonus
+
+    rec = RecordsTahfidz(
+        siswa_id=s.id,
+        tanggal=request.form.get('tanggal') or datetime.now().strftime("%Y-%m-%d"),
+        hafalan_terakhir=gabungan_hafalan,
+        catatan=request.form.get('catatan', ''),
+        penilai=session.get('user', 'Musyrif')
+    )
+    db.session.add(rec)
+    db.session.commit()
+
+    flash(f'Setoran Tahfidz disimpan & mendapat +{poin_bonus} poin!', 'success')
     return redirect(request.referrer or url_for('dashboard_guru'))
 
-# IMPORT DARI EXCEL (Admin & Guru)
+
+# IMPORT SISWA DARI EXCEL
 @app.route('/import_excel', methods=['POST'])
 def import_excel():
     if session.get('role') not in ('admin', 'guru'):
@@ -206,208 +629,92 @@ def import_excel():
     if file and file.filename.endswith(('.xlsx', '.xls')):
         try:
             df = pd.read_excel(file)
-            siswa_list = load_siswa()
-            if not isinstance(siswa_list, list):
-                siswa_list = []
-
+            imported_count = 0
             for _, row in df.iterrows():
-                new_siswa = {
-                    "id": f"S{len(siswa_list) + 1:03d}",
-                    "nama": str(row.get('Nama', '')),
-                    "kelas": str(row.get('Kelas', '')),
-                    "poin": int(row.get('Poin', 100)),
-                    "catatan": [],
-                    "tahsin": [],
-                    "tahfidz": []
-                }
-                siswa_list.append(new_siswa)
+                nama = str(row.get('Nama', row.get('Nama_Siswa', ''))).strip()
+                if not nama or nama.lower() == 'nan':
+                    continue
+                
+                kelas = str(row.get('Kelas', '4A')).strip()
+                custom_id = str(row.get('NISN', row.get('NISN_ID', ''))).strip()
 
-            save_data(DATA_SISWA_PATH, siswa_list)
-            flash('Import data siswa dari Excel berhasil!', 'success')
+                if not custom_id or custom_id.lower() == 'nan':
+                    count = Siswa.query.count()
+                    custom_id = f"S{count + 1:03d}"
+                    idx = count + 1
+                    while Siswa.query.get(custom_id):
+                        idx += 1
+                        custom_id = f"S{idx:03d}"
+
+                existing_siswa = Siswa.query.get(custom_id)
+                if existing_siswa:
+                    existing_siswa.nama = nama
+                    existing_siswa.kelas = kelas
+                else:
+                    ortu = User.query.filter_by(username=nama, role='ortu').first()
+                    if not ortu:
+                        ortu = User(username=nama, password='1234', role='ortu', nama=f"Wali {nama}", kelas=kelas, status='Aktif')
+                        db.session.add(ortu)
+                        db.session.flush()
+
+                    new_siswa = Siswa(id=custom_id, nama=nama, kelas=kelas, poin=0, user_id_ortu=ortu.id)
+                    db.session.add(new_siswa)
+                imported_count += 1
+
+            db.session.commit()
+            flash(f'Berhasil mengimpor {imported_count} data santri!', 'success')
         except Exception as e:
             flash(f'Gagal membaca file Excel: {str(e)}', 'danger')
     else:
         flash('Format file harus berupa Excel (.xlsx / .xls)!', 'danger')
 
-    redirect_target = 'dashboard_admin' if session.get('role') == 'admin' else 'dashboard_guru'
-    return redirect(url_for(redirect_target))
+    return redirect(request.referrer or url_for('dashboard_guru'))
 
-def _redirect_dashboard():
-    target = 'dashboard_admin' if session.get('role') == 'admin' else 'dashboard_guru'
-    return redirect(url_for(target))
 
-def _send_file_compat(path, download_name):
-    """send_file(download_name=...) baru ada di Flask 2.0+. Kalau Flask versi
-    lama dipakai (download_name belum dikenal), otomatis coba attachment_filename."""
-    try:
-        return send_file(path, as_attachment=True, download_name=download_name)
-    except TypeError:
-        return send_file(path, as_attachment=True, attachment_filename=download_name)
-
-# EXPORT KE EXCEL (AMAN TANPA CRASH)
+# EXPORT DATA & CETAK
 @app.route('/export_excel')
 def export_excel():
     if not session.get('role'):
         return redirect(url_for('login'))
 
     try:
-        siswa_list = load_siswa()
-        data_export = []
-
-        for s in siswa_list:
-            if isinstance(s, dict):
-                data_export.append({
-                    "ID Siswa": s.get('id', ''),
-                    "Nama Siswa": s.get('nama', ''),
-                    "Kelas": s.get('kelas', ''),
-                    "Akumulasi Poin": s.get('poin', 100)
-                })
-
+        siswa_list = Siswa.query.all()
+        data_export = [{"ID / NISN": s.id, "Nama Santri": s.nama, "Kelas": s.kelas, "Akumulasi Poin": s.poin} for s in siswa_list]
         df = pd.DataFrame(data_export)
-
         os.makedirs('data', exist_ok=True)
         export_path = os.path.join('data', 'Laporan_Siswa_SDIT.xlsx')
-
-        try:
-            df.to_excel(export_path, index=False, engine='openpyxl')
-        except ModuleNotFoundError:
-            flash('Export Excel gagal: library "openpyxl" belum terinstall di server. Jalankan: pip install openpyxl', 'danger')
-            return _redirect_dashboard()
-
-        return _send_file_compat(export_path, 'Laporan_Siswa_SDIT.xlsx')
-
+        df.to_excel(export_path, index=False, engine='openpyxl')
+        return send_file(export_path, as_attachment=True, download_name='Laporan_Siswa_SDIT.xlsx')
     except Exception as e:
-        traceback.print_exc()
         flash(f'Export Excel gagal: {str(e)}', 'danger')
-        return _redirect_dashboard()
+        return redirect(request.referrer or url_for('dashboard_guru'))
 
-# EXPORT KE CSV (Admin & Guru)
+
 @app.route('/export_csv')
 def export_csv():
     if not session.get('role'):
         return redirect(url_for('login'))
 
     try:
-        siswa_list = load_siswa()
-        data_export = []
-
-        for s in siswa_list:
-            if isinstance(s, dict):
-                data_export.append({
-                    "ID Siswa": s.get('id', ''),
-                    "Nama Siswa": s.get('nama', ''),
-                    "Kelas": s.get('kelas', ''),
-                    "Akumulasi Poin": s.get('poin', 100)
-                })
-
+        siswa_list = Siswa.query.all()
+        data_export = [{"ID / NISN": s.id, "Nama Santri": s.nama, "Kelas": s.kelas, "Akumulasi Poin": s.poin} for s in siswa_list]
         df = pd.DataFrame(data_export)
-
         buffer = io.StringIO()
         df.to_csv(buffer, index=False)
-        csv_bytes = buffer.getvalue().encode('utf-8-sig')  # BOM agar Excel baca UTF-8 dgn benar
-
-        return Response(
-            csv_bytes,
-            mimetype='text/csv',
-            headers={"Content-Disposition": "attachment; filename=Laporan_Siswa_SDIT.csv"}
-        )
+        return Response(buffer.getvalue().encode('utf-8-sig'), mimetype='text/csv', headers={"Content-Disposition": "attachment; filename=Laporan_Siswa_SDIT.csv"})
     except Exception as e:
-        traceback.print_exc()
         flash(f'Export CSV gagal: {str(e)}', 'danger')
-        return _redirect_dashboard()
+        return redirect(request.referrer or url_for('dashboard_guru'))
 
-# EXPORT / CETAK LAPORAN SEMUA SISWA (bisa disimpan sbg PDF lewat dialog Print browser)
+
 @app.route('/export_pdf')
 def export_pdf():
     if not session.get('role'):
         return redirect(url_for('login'))
 
-    try:
-        siswa_list = load_siswa()
-        tanggal_cetak = datetime.now().strftime("%d %B %Y")
-        return render_template('laporan_semua.html', siswa_list=siswa_list, tanggal=tanggal_cetak)
-    except Exception as e:
-        traceback.print_exc()
-        flash(f'Cetak/Export PDF gagal: {str(e)}', 'danger')
-        return _redirect_dashboard()
+    siswa_list = Siswa.query.all()
+    return render_template('laporan_semua.html', siswa_list=siswa_list, tanggal=datetime.now().strftime("%d %B %Y"))
 
-@app.route('/tambah_siswa', methods=['POST'])
-def tambah_siswa():
-    if session.get('role') != 'admin':
-        return redirect(url_for('login'))
-
-    siswa_list = load_siswa()
-    if not isinstance(siswa_list, list):
-        siswa_list = []
-
-    new_siswa = {
-        "id": f"S{len(siswa_list) + 1:03d}",
-        "nama": request.form.get('nama'),
-        "kelas": request.form.get('kelas'),
-        "poin": 100,
-        "catatan": [],
-        "tahsin": [],
-        "tahfidz": []
-    }
-    siswa_list.append(new_siswa)
-    save_data(DATA_SISWA_PATH, siswa_list)
-    flash('Data siswa berhasil ditambahkan!', 'success')
-    return redirect(url_for('dashboard_admin'))
-
-@app.route('/tambah_guru', methods=['POST'])
-def tambah_guru():
-    if session.get('role') != 'admin':
-        return redirect(url_for('login'))
-
-    guru_dict = load_data(DATA_GURU_PATH)
-    if not isinstance(guru_dict, dict):
-        guru_dict = {}
-
-    username = request.form.get('username')
-    guru_dict[username] = {
-        "password": request.form.get('password'),
-        "role": "guru",
-        "nama": request.form.get('nama'),
-        "kelas": request.form.get('kelas', '-')
-    }
-    save_data(DATA_GURU_PATH, guru_dict)
-    flash('Data guru berhasil ditambahkan!', 'success')
-    return redirect(url_for('dashboard_admin'))
-
-@app.route('/cetak_hafalan/<id_siswa>')
-def cetak_hafalan(id_siswa):
-    if not session.get('role'):
-        return redirect(url_for('login'))
-
-    siswa_list = load_siswa()
-    siswa = None
-    if isinstance(siswa_list, list):
-        siswa = next((s for s in siswa_list if isinstance(s, dict) and s.get('id') == id_siswa), None)
-
-    if not siswa:
-        flash('Data siswa tidak ditemukan!', 'danger')
-        return _redirect_dashboard()
-
-    try:
-        tanggal_cetak = datetime.now().strftime("%d %B %Y")
-        return render_template('lembar_hafalan.html', siswa=siswa, tanggal=tanggal_cetak)
-    except Exception as e:
-        traceback.print_exc()
-        flash(f'Cetak laporan gagal: {str(e)}', 'danger')
-        return _redirect_dashboard()
-
-@app.route('/hapus_siswa/<id_siswa>')
-def hapus_siswa(id_siswa):
-    if session.get('role') != 'admin':
-        return redirect(url_for('login'))
-
-    siswa_list = load_siswa()
-    if isinstance(siswa_list, list):
-        siswa_list = [s for s in siswa_list if isinstance(s, dict) and s.get('id') != id_siswa]
-        save_data(DATA_SISWA_PATH, siswa_list)
-
-    flash('Data siswa berhasil dihapus!', 'warning')
-    return redirect(url_for('dashboard_admin'))
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
