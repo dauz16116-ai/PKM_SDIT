@@ -2,191 +2,726 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard Admin - SDIT</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMA SDIT - Dashboard Administrator</title>
+
+    <!-- Bootstrap 5.3 & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- SheetJS (XLSX) untuk Download Template Excel .xlsx -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #059669;
+            --primary-dark: #065f46;
+            --primary-light: #10b981;
+            --primary-soft: #ecfdf5;
+            --accent: #3b82f6;
+            --warning-soft: #fffbeb;
+            --danger-soft: #fef2f2;
+            --bg-body: #f8fafc;
+            --card-bg: #ffffff;
+            --border-subtle: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --radius-lg: 20px;
+            --radius-md: 14px;
+            --shadow-subtle: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+            --shadow-hover: 0 12px 30px -4px rgba(15, 23, 42, 0.12);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .anim-fade-in { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .delay-1 { animation-delay: 0.08s; }
+        .delay-2 { animation-delay: 0.16s; }
+        .delay-3 { animation-delay: 0.24s; }
+        .delay-4 { animation-delay: 0.32s; }
+
+        .navbar-custom {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 65%, #334155 100%);
+            box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.35);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .user-chip {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50rem;
+            padding: 5px 14px;
+            color: #ffffff;
+        }
+
+        .hero-banner {
+            background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 24px 28px;
+            box-shadow: var(--shadow-subtle);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-modern {
+            background: var(--card-bg);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-subtle);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .card-modern:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .kpi-card { padding: 22px; position: relative; overflow: hidden; }
+        .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; height: 4px; width: 100%; }
+        .kpi-card.kpi-dark::before { background: linear-gradient(90deg, #334155, #0f172a); }
+        .kpi-card.kpi-emerald::before { background: linear-gradient(90deg, #10b981, #059669); }
+        .kpi-card.kpi-amber::before { background: linear-gradient(90deg, #f59e0b, #d97706); }
+        .kpi-card.kpi-blue::before { background: linear-gradient(90deg, #3b82f6, #1d4ed8); }
+
+        .kpi-icon-wrap {
+            width: 56px; height: 56px; border-radius: var(--radius-md);
+            display: flex; align-items: center; justify-content: center; font-size: 1.65rem;
+        }
+
+        .table-custom { margin-bottom: 0; }
+        .table-custom thead th {
+            background-color: #f8fafc;
+            color: var(--text-muted);
+            font-size: 0.76rem;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            font-weight: 700;
+            border-bottom: 2px solid #e2e8f0;
+            padding: 14px 18px;
+            white-space: nowrap;
+        }
+        .table-custom tbody td {
+            padding: 16px 18px;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.9rem;
+        }
+
+        .btn-act {
+            border-radius: 10px; font-weight: 600; font-size: 0.82rem; padding: 6px 12px;
+            display: inline-flex; align-items: center; gap: 5px; transition: all 0.2s ease;
+        }
+        .btn-act:hover { transform: translateY(-2px); }
+
+        .filter-pill {
+            padding: 7px 16px; font-size: 0.84rem; font-weight: 600; border-radius: 50rem;
+            border: 1px solid var(--border-subtle); background: #ffffff; color: var(--text-muted);
+            cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px;
+        }
+        .filter-pill.active {
+            background: #0f172a; color: #ffffff; border-color: #0f172a;
+            box-shadow: 0 3px 12px rgba(15, 23, 42, 0.25);
+        }
+
+        .avatar-circle {
+            width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center;
+            justify-content: center; font-weight: 700; font-size: 1rem; color: #fff;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            box-shadow: 0 4px 10px rgba(15, 23, 42, 0.15); flex-shrink: 0;
+        }
+
+        .modal-content { border-radius: 20px; border: 1px solid rgba(226, 232, 240, 0.8); }
+    </style>
 </head>
-<body class="bg-light">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="#">
-                <img src="{{ url_for('static', filename='logo-sdit.png') }}" height="30" class="me-2">
-                <span>Administrator SDIT</span>
+<body>
+
+    <!-- NAVBAR RESMI ADMINISTRATOR -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top py-2 mb-4">
+        <div class="container-fluid px-3 px-lg-4">
+            <a class="navbar-brand d-flex align-items-center gap-3 fw-bold" href="#">
+                <img src="{{ url_for('static', filename='logo-sdit.png') }}" height="42" class="bg-white p-1 rounded-3 shadow-sm" alt="Logo SDIT" onerror="this.src='https://placehold.co/80x80/0f172a/ffffff?text=SDIT'">
+                <div>
+                    <div class="fs-5 lh-1 mt-1 text-white fw-extrabold tracking-tight">SIMA SDIT</div>
+                    <small class="text-white-50 fw-normal" style="font-size: 0.72rem; letter-spacing: 0.3px;">Panel Administrator Sistem</small>
+                </div>
             </a>
-            <div class="d-flex align-items-center text-white">
-                <span class="me-3"><i class="bi bi-person-circle"></i> {{ session.get('user') }}</span>
-                <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
+
+            <div class="d-none d-lg-flex align-items-center gap-2 user-chip">
+                <i class="bi bi-clock-history text-warning"></i>
+                <span id="liveClock" class="small fw-semibold">Memuat waktu...</span>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 gap-md-3">
+                <div class="d-none d-sm-block text-end text-white">
+                    <div class="fw-bold fs-6 lh-1">{{ session.get('user', 'Administrator') }}</div>
+                    <div class="d-flex align-items-center justify-content-end gap-1 mt-1">
+                        <span class="badge bg-danger bg-opacity-75 text-white" style="font-size: 0.65rem;">
+                            <i class="bi bi-shield-lock-fill me-1"></i>Super Admin
+                        </span>
+                    </div>
+                </div>
+                <a href="/logout" class="btn btn-light btn-sm rounded-pill px-3 py-2 fw-bold text-dark shadow-sm d-flex align-items-center gap-2" style="font-size: 0.82rem;">
+                    <i class="bi bi-box-arrow-right"></i> <span class="d-none d-md-inline">Keluar</span>
+                </a>
             </div>
         </div>
     </nav>
 
-    <div class="container my-4">
+    <!-- MAIN CONTAINER -->
+    <div class="container-fluid px-3 px-lg-4 mb-5">
+
+        <!-- NOTIFIKASI TOAST DARI FLASK -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show">{{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
+                    <script>
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: '{{ "success" if category == "success" else "error" }}',
+                            title: '{{ message }}',
+                            showConfirmButton: false,
+                            timer: 3500,
+                            timerProgressBar: true
+                        });
+                    </script>
                 {% endfor %}
             {% endif %}
         {% endwith %}
 
-        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-            <h4 class="fw-bold mb-0">Manajemen Data Admin</h4>
-            <div class="d-flex flex-wrap gap-2">
-                <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#modalImportExcel">
-                    <i class="bi bi-file-earmark-excel"></i> Import Excel
-                </button>
+        <!-- HERO BANNER ADMIN -->
+        <div class="hero-banner mb-4 anim-fade-in">
+            <div class="row align-items-center g-3">
+                <div class="col-12 col-lg-8">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="badge bg-dark text-white fw-bold px-3 py-1 rounded-pill">
+                            <i class="bi bi-shield-check me-1"></i> Mode Kelola Pengguna
+                        </span>
+                        <span class="text-muted small">• Tahun Ajaran 2026/2027</span>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-1">Ahlan wa Sahlan, Administrator SIMA SDIT! 🛠️</h3>
+                    <p class="text-muted mb-0 small">
+                        Kelola data keanggotaan Musyrif / Guru SDIT, perbarui kredensial login, serta kontrol hak akses pengajar.
+                    </p>
+                </div>
+                <div class="col-12 col-lg-4 text-lg-end">
+                    <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+                        <button class="btn btn-outline-dark btn-sm rounded-pill px-3 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalImportGuru">
+                            <i class="bi bi-file-earmark-excel me-1"></i> Import Excel Guru
+                        </button>
+                        <button class="btn btn-dark btn-sm rounded-pill px-3 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalTambahGuru">
+                            <i class="bi bi-person-plus-fill me-1"></i> + Tambah Guru Baru
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                <div class="btn-group">
-                    <button type="button" class="btn btn-warning text-dark dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-download"></i> Export Data
+        <!-- STATISTIK / KPI METRICS ADMIN KHUSUS GURU -->
+        {% set total_guru = guru_list|length if guru_list else 0 %}
+        {% set ns_guru = namespace(aktif=0, nonaktif=0, kelas_set=[]) %}
+        {% for g in guru_list %}
+            {% if g.status == 'Aktif' or g.status is not defined or g.status == True %}
+                {% set ns_guru.aktif = ns_guru.aktif + 1 %}
+            {% else %}
+                {% set ns_guru.nonaktif = ns_guru.nonaktif + 1 %}
+            {% endif %}
+            {% if g.kelas and g.kelas not in ns_guru.kelas_set %}
+                {% set _ = ns_guru.kelas_set.append(g.kelas) %}
+            {% endif %}
+        {% endfor %}
+
+        <div class="row g-3 g-xl-4 mb-4">
+            <div class="col-12 col-sm-6 col-xl-3 anim-fade-in delay-1">
+                <div class="card-modern kpi-card kpi-dark h-100">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Total Guru / Musyrif</span>
+                            <div class="d-flex align-items-baseline gap-2 mt-1">
+                                <h2 class="fw-bold mb-0 text-dark">{{ total_guru }}</h2>
+                                <span class="badge bg-dark text-white rounded-pill fw-semibold small">Terdaftar</span>
+                            </div>
+                            <small class="text-muted" style="font-size: 0.75rem;"><i class="bi bi-people-fill text-dark me-1"></i>Seluruh staf pengajar</small>
+                        </div>
+                        <div class="kpi-icon-wrap bg-dark bg-opacity-10 text-dark">
+                            <i class="bi bi-person-badge-fill"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-xl-3 anim-fade-in delay-2">
+                <div class="card-modern kpi-card kpi-emerald h-100">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Guru Aktif Mengajar</span>
+                            <div class="d-flex align-items-baseline gap-2 mt-1">
+                                <h2 class="fw-bold mb-0 text-dark">{{ ns_guru.aktif }}</h2>
+                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill fw-semibold small">Aktif</span>
+                            </div>
+                            <small class="text-muted" style="font-size: 0.75rem;"><i class="bi bi-check-circle-fill text-success me-1"></i>Akses login aktif</small>
+                        </div>
+                        <div class="kpi-icon-wrap bg-success bg-opacity-10 text-success">
+                            <i class="bi bi-person-check-fill"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-xl-3 anim-fade-in delay-3">
+                <div class="card-modern kpi-card kpi-amber h-100">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Guru Non-Aktif</span>
+                            <div class="d-flex align-items-baseline gap-2 mt-1">
+                                <h2 class="fw-bold mb-0 text-dark">{{ ns_guru.nonaktif }}</h2>
+                                <span class="badge bg-warning bg-opacity-10 text-dark rounded-pill fw-semibold small">Non-Aktif</span>
+                            </div>
+                            <small class="text-muted" style="font-size: 0.75rem;"><i class="bi bi-exclamation-octagon text-warning me-1"></i>Sudah tidak aktif SDIT</small>
+                        </div>
+                        <div class="kpi-icon-wrap bg-warning bg-opacity-10 text-warning">
+                            <i class="bi bi-person-x-fill"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-xl-3 anim-fade-in delay-4">
+                <div class="card-modern kpi-card kpi-blue h-100">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Total Kelas Binaan</span>
+                            <div class="d-flex align-items-baseline gap-2 mt-1">
+                                <h2 class="fw-bold mb-0 text-dark">{{ ns_guru.kelas_set|length }}</h2>
+                                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill fw-semibold small">Rombel</span>
+                            </div>
+                            <small class="text-muted" style="font-size: 0.75rem;"><i class="bi bi-building text-primary me-1"></i>Rombongan belajar</small>
+                        </div>
+                        <div class="kpi-icon-wrap bg-primary bg-opacity-10 text-primary">
+                            <i class="bi bi-door-open-fill"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TABEL KELOLA DATA GURU & MUSYRIF -->
+        <div class="card-modern overflow-hidden">
+            <div class="p-4 border-bottom bg-white">
+                <div class="row align-items-center g-3">
+                    <div class="col-12 col-md-5">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="bg-dark text-white p-2 rounded-3">
+                                <i class="bi bi-person-gear fs-5"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-0 text-dark">Data Pengguna & Guru SDIT</h5>
+                                <small class="text-muted">Total {{ total_guru }} akun guru terdaftar</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-12 col-md-7">
+                        <div class="d-flex flex-wrap align-items-center justify-content-md-end gap-2">
+                            <!-- Input Search Guru -->
+                            <div class="position-relative flex-grow-1 flex-md-grow-0" style="min-width: 250px;">
+                                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                                <input type="text" id="searchGuruInput" class="form-control rounded-pill ps-5 bg-light border" placeholder="Cari nama, username, kelas..." onkeyup="filterTabelGuru()">
+                                <button type="button" id="clearSearchGuruBtn" class="btn btn-sm text-muted position-absolute top-50 end-0 translate-middle-y me-2 d-none" onclick="clearSearchGuru()">
+                                    <i class="bi bi-x-circle-fill"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter Keaktifan Guru -->
+                <div class="d-flex flex-wrap align-items-center gap-2 mt-3 pt-3 border-top">
+                    <span class="small fw-bold text-muted me-1"><i class="bi bi-funnel me-1"></i>Filter Keaktifan:</span>
+                    <button type="button" class="filter-pill active" onclick="setFilterGuruStatus('all', this)">
+                        Semua Staf Guru <span class="badge bg-secondary text-white rounded-pill ms-1">{{ total_guru }}</span>
                     </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="/export_excel"><i class="bi bi-file-earmark-excel me-1"></i> Export Excel (.xlsx)</a></li>
-                        <li><a class="dropdown-item" href="/export_csv"><i class="bi bi-file-earmark-spreadsheet me-1"></i> Export CSV</a></li>
-                        <li><a class="dropdown-item" href="/export_pdf" target="_blank"><i class="bi bi-file-earmark-pdf me-1"></i> Export / Cetak PDF (Semua Siswa)</a></li>
-                    </ul>
-                </div>
-
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambahGuru">+ Guru</button>
-                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalTambahSiswa">+ Siswa</button>
-            </div>
-        </div>
-
-        <div class="card shadow-sm border-0 mb-4">
-            <div class="card-body">
-                <form method="GET" action="/dashboard_admin" class="row g-2">
-                    <div class="col-md-10">
-                        <input type="text" name="q" class="form-control" placeholder="Cari ID, Nama, atau Kelas..." value="{{ request.args.get('q', '') }}">
-                    </div>
-                    <div class="col-md-2">
-                        <button type="submit" class="btn btn-dark w-100">Cari Data</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <div class="card shadow-sm border-0 mb-4">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover table-striped align-middle mb-0">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>ID</th>
-                                <th>Nama Siswa</th>
-                                <th>Kelas</th>
-                                <th>Akumulasi Poin</th>
-                                <th class="text-center">Aksi CRUD & Cetak</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for s in siswa_list %}
-                            <tr>
-                                <td><span class="badge bg-secondary">{{ s.id }}</span></td>
-                                <td class="fw-bold">{{ s.nama }}</td>
-                                <td>{{ s.kelas }}</td>
-                                <td><span class="badge bg-success fs-6">{{ s.poin }} Poin</span></td>
-                                <td class="text-center">
-                                    <a href="/cetak_hafalan/{{ s.id }}" target="_blank" class="btn btn-sm btn-success me-1">
-                                        <i class="bi bi-printer"></i> Cetak Laporan
-                                    </a>
-                                    <a href="/hapus_siswa/{{ s.id }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Hapus data siswa ini?')">
-                                        <i class="bi bi-trash"></i> Hapus
-                                    </a>
-                                </td>
-                            </tr>
-                            {% else %}
-                            <tr>
-                                <td colspan="5" class="text-center py-4 text-muted">Data siswa tidak ditemukan.</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                    <button type="button" class="filter-pill" onclick="setFilterGuruStatus('aktif', this)">
+                        <i class="bi bi-check-circle-fill text-success"></i> Guru Aktif
+                        <span class="badge bg-success text-white rounded-pill ms-1">{{ ns_guru.aktif }}</span>
+                    </button>
+                    <button type="button" class="filter-pill" onclick="setFilterGuruStatus('nonaktif', this)">
+                        <i class="bi bi-dash-circle-fill text-warning"></i> Tidak Aktif
+                        <span class="badge bg-warning text-dark rounded-pill ms-1">{{ ns_guru.nonaktif }}</span>
+                    </button>
                 </div>
             </div>
+
+            <!-- Table Data Guru -->
+            <div class="table-responsive">
+                <table class="table table-custom align-middle" id="tableGuru">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Nama Lengkap Guru</th>
+                            <th>Username Login</th>
+                            <th>Kelas Binaan</th>
+                            <th>Status Keaktifan</th>
+                            <th class="text-center">Aksi Administrator</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for g in guru_list %}
+                        {% set is_active = (g.status == 'Aktif' or g.status is not defined or g.status == True or g.status == 'aktif') %}
+                        <tr class="guru-row" data-id="{{ g.id }}" data-nama="{{ g.nama|lower }}" data-username="{{ g.username|lower }}" data-kelas="{{ g.kelas|lower if g.kelas else '' }}" data-status="{{ 'aktif' if is_active else 'nonaktif' }}">
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar-circle">
+                                        {{ g.nama[0]|upper if g.nama else 'G' }}
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark fs-6">{{ g.nama }}</div>
+                                        <div class="small text-muted" style="font-size: 0.72rem;">ID Staf: G-00{{ g.id }}</div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td>
+                                <span class="badge bg-light text-dark border px-3 py-2 rounded-3 fw-mono">
+                                    <i class="bi bi-person me-1 text-muted"></i> {{ g.username }}
+                                </span>
+                            </td>
+
+                            <td>
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-3 fw-bold">
+                                    Kelas {{ g.kelas if g.kelas else 'Umum' }}
+                                </span>
+                            </td>
+
+                            <td>
+                                {% if is_active %}
+                                    <span class="badge bg-success text-white px-3 py-2 rounded-pill fw-bold" style="font-size: 0.75rem;">
+                                        <i class="bi bi-check-circle-fill me-1"></i> Aktif Mengajar
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary text-white px-3 py-2 rounded-pill fw-bold" style="font-size: 0.75rem;">
+                                        <i class="bi bi-person-x-fill me-1"></i> Tidak Aktif
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center align-items-center gap-2">
+                                    <!-- Tombol Ubah / Edit Guru -->
+                                    <button class="btn btn-act btn-dark" data-bs-toggle="modal" data-bs-target="#modalEditGuru{{ g.id }}" title="Ubah Nama, Username, Password & Status Guru">
+                                        <i class="bi bi-pencil-square me-1"></i> Ubah / Edit
+                                    </button>
+
+                                    <!-- Tombol Hapus Guru -->
+                                    <button class="btn btn-act btn-outline-danger" onclick="confirmHapusGuru('{{ g.id }}', '{{ g.nama }}')" title="Hapus Akun Guru">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr id="emptyGuruRow">
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="bi bi-person-x fs-1 d-block mb-2 opacity-50"></i>
+                                <h6 class="fw-bold">Belum Ada Data Guru Terdaftar</h6>
+                                <p class="small mb-3">Silakan tambah guru baru secara manual atau import dari file Excel.</p>
+                                <button class="btn btn-dark btn-sm rounded-pill px-4 fw-bold" data-bs-toggle="modal" data-bs-target="#modalTambahGuru">
+                                    <i class="bi bi-plus-circle me-1"></i> Tambah Guru
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="noMatchGuruAlert" class="text-center py-5 d-none">
+                <i class="bi bi-search fs-1 text-muted opacity-50 d-block mb-2"></i>
+                <h6 class="fw-bold text-dark">Data Guru Tidak Ditemukan</h6>
+                <p class="text-muted small mb-0">Coba gunakan kata kunci pencarian nama, username, atau kelas yang lain.</p>
+            </div>
         </div>
+
     </div>
 
-    <!-- Modal Import Excel -->
-    <div class="modal fade" id="modalImportExcel" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form action="/import_excel" method="POST" enctype="multipart/form-data">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Import Data Siswa dari Excel</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <!-- MODAL EDIT DATA GURU (Luar Tabel untuk Mencegah Flickering) -->
+    {% for g in guru_list %}
+        {% set is_active = (g.status == 'Aktif' or g.status is not defined or g.status == True or g.status == 'aktif') %}
+        <div class="modal fade" id="modalEditGuru{{ g.id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg">
+                    <form action="/admin/edit_guru/{{ g.id }}" method="POST">
+                        <div class="modal-header bg-dark text-white border-0 py-3" style="border-radius: 20px 20px 0 0;">
+                            <h5 class="modal-title fw-bold mb-0">
+                                <i class="bi bi-pencil-square me-2"></i> Ubah Data Guru / Musyrif
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <div class="alert alert-secondary bg-light border-0 small text-dark mb-3">
+                                <i class="bi bi-info-circle-fill text-dark me-1"></i> Jika guru sudah tidak aktif mengajar di SDIT, ubah status ke <strong>Tidak Aktif</strong> atau perbarui kredensial akunnya.
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-muted">Nama Lengkap Guru</label>
+                                <input type="text" name="nama" class="form-control rounded-3 bg-light border" value="{{ g.nama }}" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-muted">Username Login</label>
+                                <input type="text" name="username" class="form-control rounded-3 bg-light border" value="{{ g.username }}" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-muted">Password Baru (Biarkan kosong jika tidak diubah)</label>
+                                <input type="password" name="password" class="form-control rounded-3 bg-light border" placeholder="Masukkan password baru jika mau diubah...">
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-6">
+                                    <label class="form-label fw-bold small text-muted">Kelas Binaan</label>
+                                    <input type="text" name="kelas" class="form-control rounded-3 bg-light border" value="{{ g.kelas if g.kelas else '' }}" placeholder="Contoh: 4A">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label fw-bold small text-muted">Status Keaktifan</label>
+                                    <select name="status" class="form-select rounded-3 bg-light border">
+                                        <option value="Aktif" {{ 'selected' if is_active else '' }}>Aktif Mengajar</option>
+                                        <option value="Tidak Aktif" {{ 'selected' if not is_active else '' }}>Tidak Aktif di SDIT</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 p-4 pt-0">
+                            <button type="button" class="btn btn-light rounded-3 fw-bold" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-dark rounded-3 fw-bold px-4">
+                                <i class="bi bi-save me-1"></i> Simpan Perubahan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+    <!-- MODAL TAMBAH GURU MANUALLY -->
+    <div class="modal fade" id="modalTambahGuru" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <form action="/admin/tambah_guru" method="POST">
+                    <div class="modal-header bg-dark text-white border-0 py-3" style="border-radius: 20px 20px 0 0;">
+                        <h5 class="modal-title fw-bold mb-0">
+                            <i class="bi bi-person-plus-fill me-2"></i> Tambah Staf Guru Baru
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
-                    <div class="modal-body">
-                        <p class="small text-muted">Format kolom header Excel harus berisi: <strong>Nama</strong>, <strong>Kelas</strong>, dan <strong>Poin</strong>.</p>
-                        <input type="file" name="file_excel" class="form-control" accept=".xlsx, .xls" required>
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Nama Lengkap Guru / Musyrif</label>
+                            <input type="text" name="nama" class="form-control rounded-3 bg-light border" placeholder="Contoh: Ustadz Ahmad Fauzi, S.Pd." required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Username untuk Login</label>
+                            <input type="text" name="username" class="form-control rounded-3 bg-light border" placeholder="Contoh: ahmad_fauzi" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Password</label>
+                            <input type="password" name="password" class="form-control rounded-3 bg-light border" placeholder="Buat password akun guru..." required>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-bold small text-muted">Kelas Binaan</label>
+                                <input type="text" name="kelas" class="form-control rounded-3 bg-light border" placeholder="Contoh: 4A" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-bold small text-muted">Status Keaktifan</label>
+                                <select name="status" class="form-select rounded-3 bg-light border">
+                                    <option value="Aktif" selected>Aktif Mengajar</option>
+                                    <option value="Tidak Aktif">Tidak Aktif</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-success">Upload & Import</button>
+                    <div class="modal-footer border-0 p-4 pt-0">
+                        <button type="button" class="btn btn-light rounded-3 fw-bold" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-dark rounded-3 fw-bold px-4">
+                            <i class="bi bi-check-lg me-1"></i> Simpan Guru
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- Modal Tambah Siswa -->
-    <div class="modal fade" id="modalTambahSiswa" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form action="/tambah_siswa" method="POST">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Tambah Siswa Baru</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <!-- MODAL IMPORT EXCEL GURU (.XLSX) -->
+    <div class="modal fade" id="modalImportGuru" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <form action="/admin/import_guru" method="POST" enctype="multipart/form-data">
+                    <div class="modal-header bg-dark text-white border-0 py-3" style="border-radius: 20px 20px 0 0;">
+                        <h5 class="modal-title fw-bold mb-0">
+                            <i class="bi bi-file-earmark-excel me-2"></i> Import Data Guru dari Excel
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label">Nama Siswa</label>
-                            <input type="text" name="nama" class="form-control" required placeholder="Budi Santoso">
+                    <div class="modal-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded-3 border">
+                            <div>
+                                <h6 class="fw-bold mb-0 text-dark">Template Kosong (.xlsx)</h6>
+                                <small class="text-muted">Format: Nama Lengkap, Username, Password, Kelas</small>
+                            </div>
+                            <button type="button" class="btn btn-outline-success btn-sm fw-bold px-3 rounded-pill" onclick="downloadTemplateExcelGuru()">
+                                <i class="bi bi-download me-1"></i> Download Excel
+                            </button>
+                        </div>
+
+                        <div class="alert alert-warning bg-warning bg-opacity-10 border-0 text-dark small mb-3">
+                            <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i> Pastikan file Excel memiliki header kolom: <strong>Nama Lengkap</strong>, <strong>Username</strong>, <strong>Password</strong>, dan <strong>Kelas</strong>.
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Kelas</label>
-                            <input type="text" name="kelas" class="form-control" required placeholder="4A">
+                            <label class="form-label fw-bold small text-muted">Pilih File Spreadsheet (.xlsx / .xls)</label>
+                            <input type="file" name="file_excel_guru" class="form-control bg-light rounded-3 border" accept=".xlsx, .xls" required>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-success">Simpan Data</button>
+                    <div class="modal-footer border-0 p-4 pt-0">
+                        <button type="button" class="btn btn-light rounded-3 fw-bold" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-dark rounded-3 fw-bold px-4">Upload & Proses</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- Modal Tambah Guru -->
-    <div class="modal fade" id="modalTambahGuru" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form action="/tambah_guru" method="POST">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Tambah Guru / Musyrif</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label">Nama Guru</label>
-                            <input type="text" name="nama" class="form-control" required placeholder="Ferda Ayi">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Username</label>
-                            <input type="text" name="username" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Password</label>
-                            <input type="password" name="password" class="form-control" required>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">Tambah Guru</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+    <!-- SCRIPTS DAN JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            updateLiveClock();
+            setInterval(updateLiveClock, 1000);
+        });
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        // 1. Clock Realtime
+        function updateLiveClock() {
+            const now = new Date();
+            const days = ['Ahad', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            
+            const clockEl = document.getElementById('liveClock');
+            if (clockEl) {
+                clockEl.textContent = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()} • ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')} WIB`;
+            }
+        }
+
+        // 2. Download Template Excel Kosong Khusus Staf Guru (.xlsx)
+        function downloadTemplateExcelGuru() {
+            if (typeof XLSX === 'undefined') {
+                Swal.fire({ icon: 'error', title: 'Gagal', text: 'Pustaka SheetJS belum dimuat sempurna.' });
+                return;
+            }
+
+            const headers = [["Nama Lengkap", "Username", "Password", "Kelas"]];
+            const ws = XLSX.utils.aoa_to_sheet(headers);
+            
+            ws['!cols'] = [
+                { wch: 30 }, // Nama Lengkap
+                { wch: 20 }, // Username
+                { wch: 20 }, // Password
+                { wch: 12 }  // Kelas
+            ];
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Template_Guru");
+            XLSX.writeFile(wb, "Template_Import_Guru_SDIT.xlsx");
+        }
+
+        // 3. Filter real-time untuk data guru
+        let activeGuruStatusFilter = 'all';
+
+        function filterTabelGuru() {
+            const query = document.getElementById('searchGuruInput').value.toLowerCase().trim();
+            const clearBtn = document.getElementById('clearSearchGuruBtn');
+            clearBtn.classList.toggle('d-none', query === '');
+
+            const rows = document.querySelectorAll('.guru-row');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const nama = row.getAttribute('data-nama') || '';
+                const username = row.getAttribute('data-username') || '';
+                const kelas = row.getAttribute('data-kelas') || '';
+                const rowStatus = row.getAttribute('data-status');
+
+                const matchQuery = (nama.includes(query) || username.includes(query) || kelas.includes(query));
+                const matchStatus = (activeGuruStatusFilter === 'all' || rowStatus === activeGuruStatusFilter);
+
+                if (matchQuery && matchStatus) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            const noMatch = document.getElementById('noMatchGuruAlert');
+            if (noMatch) {
+                noMatch.classList.toggle('d-none', visibleCount > 0 || rows.length === 0);
+            }
+        }
+
+        function clearSearchGuru() {
+            const input = document.getElementById('searchGuruInput');
+            input.value = '';
+            filterTabelGuru();
+            input.focus();
+        }
+
+        function setFilterGuruStatus(status, btnElement) {
+            document.querySelectorAll('.filter-pill').forEach(btn => btn.classList.remove('active'));
+            if (btnElement) btnElement.classList.add('active');
+            activeGuruStatusFilter = status;
+            filterTabelGuru();
+        }
+
+        // 4. Konfirmasi Hapus Guru via SweetAlert2
+        function confirmHapusGuru(id, nama) {
+            Swal.fire({
+                title: 'Hapus Akun Guru?',
+                html: `Apakah Anda yakin ingin menghapus akun guru <strong>${nama}</strong>? Akses login guru ini akan terhapus secara permanen.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = `/admin/hapus_guru/${id}`;
+                }
+            });
+        }
+    </script>
 </body>
 </html>
