@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Laporan Rekap Seluruh Siswa - SDIT</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        @media print { .no-print { display: none; } }
+        body { font-family: 'Georgia', serif; background: #fff; }
+        .cetak-box { border: 2px solid #198754; padding: 30px; margin: 20px auto; max-width: 950px; }
+    </style>
+</head>
+<body>
+    <div class="container text-center mt-3 no-print">
+        <button onclick="window.print()" class="btn btn-success me-2">
+            <i class="bi bi-file-earmark-pdf"></i> Cetak / Simpan sebagai PDF
+        </button>
+        <button onclick="window.close()" class="btn btn-secondary">Tutup</button>
+        <p class="text-muted small mt-2">Tip: pada dialog cetak, pilih tujuan/printer <strong>"Save as PDF"</strong> untuk menyimpan sebagai file PDF.</p>
+    </div>
+
+    <div class="cetak-box">
+        <div class="text-center border-bottom border-2 border-success pb-3 mb-3">
+            <h4 class="fw-bold text-success mb-1">LAPORAN REKAPITULASI DATA SISWA</h4>
+            <h6 class="fw-bold mb-0">SD ISLAM TERPADU (SDIT)</h6>
+            <p class="mb-0 mt-1 text-muted">Dicetak pada: {{ tanggal }}</p>
+        </div>
+
+        <table class="table table-bordered align-middle text-center mb-4">
+            <thead class="table-success">
+                <tr>
+                    <th>No</th>
+                    <th>ID Siswa</th>
+                    <th>Nama Siswa</th>
+                    <th>Kelas</th>
+                    <th>Akumulasi Poin</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in siswa_list|default([]) %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ s.id }}</td>
+                    <td class="text-start">{{ s.nama }}</td>
+                    <td>{{ s.kelas }}</td>
+                    <td>{{ s.poin }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="text-muted">Belum ada data siswa.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="row mt-5 text-center">
+            <div class="col-6">
+                <p>Mengetahui,<br>Kepala Sekolah</p>
+                <br><br>
+                <p>( ________________________ )</p>
+            </div>
+            <div class="col-6">
+                <p>Admin / Tata Usaha</p>
+                <br><br>
+                <p>( ________________________ )</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
